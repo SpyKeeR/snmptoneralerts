@@ -1,46 +1,106 @@
 ﻿{
-  "version": "1.0.2",
-  "date": "2025-10-31",
-  "compatibility": {
-    "glpi": {
-      "min": "11.0.0",
-      "max": "11.0.99"
-    },
-    "php": {
-      "min": "8.2"
-    }
-  },
+  "version": "1.0.3",
+  "release_date": "2025-10-31",
+  "glpi_min_version": "11.0.0",
+  "glpi_max_version": "11.0.99",
+  "php_min_version": "8.2",
   "author": "SpyKeeR",
   "license": "GPL-3.0-or-later",
   "homepage": "https://github.com/SpyKeeR/snmptoneralerts",
-  "changelog": {
-    "1.0.2": {
-      "date": "2025-10-31",
-      "changes": [
-        "Updated author to SpyKeeR",
-        "Changed license to GPLv3+",
-        "Added French localization",
-        "Added complete documentation",
-        "Updated repository links"
-      ]
+  "description": "Plugin GLPI pour la surveillance automatique des niveaux de toners via SNMP avec système d'alertes progressives",
+  "tags": ["snmp", "toner", "alerts", "monitoring", "printer", "netinventory"],
+  "changes": [
+    {
+      "type": "improvement",
+      "description": "Ajout des fichiers de localisation complète (fr_FR.po, fr_FR.mo, snmptoneralerts.pot)"
     },
-    "1.0.1": {
-      "date": "2025-10-31",
-      "changes": [
-        "Bug fixes and improvements",
-        "Code optimization"
-      ]
+    {
+      "type": "improvement",
+      "description": "Suppression des fichiers dropdown inutiles (restes du plugin exemple)"
     },
-    "1.0.0": {
-      "date": "2025-10-31",
-      "changes": [
-        "Initial release",
-        "SNMP toner monitoring",
-        "Progressive alert system",
-        "Email notifications",
-        "Configuration interface",
-        "Printer exclusion management"
-      ]
+    {
+      "type": "documentation",
+      "description": "Documentation complète du système de gabarits de mail"
+    },
+    {
+      "type": "feature",
+      "description": "Surveillance automatique des niveaux de toners via SNMP (NetInventory)"
+    },
+    {
+      "type": "feature",
+      "description": "Système d'alertes progressives : journalières (3 max) puis hebdomadaires"
+    },
+    {
+      "type": "feature",
+      "description": "Gestion des alertes par toner individuel (pas par imprimante)"
+    },
+    {
+      "type": "feature",
+      "description": "Interface de configuration complète avec seuils personnalisables"
+    },
+    {
+      "type": "feature",
+      "description": "Système d'exclusion d'imprimantes problématiques"
+    },
+    {
+      "type": "feature",
+      "description": "3 CronTasks automatiques : CheckTonerLevels (4x/jour), SendDailyAlerts (matin), SendWeeklyRecap (vendredi 12h)"
+    },
+    {
+      "type": "feature",
+      "description": "Notifications intelligentes via QueuedNotification GLPI avec balises dynamiques"
+    },
+    {
+      "type": "feature",
+      "description": "Affichage automatique des références de cartouches dans les alertes"
+    },
+    {
+      "type": "feature",
+      "description": "Compteurs d'alertes avec indication 'Alerte X/3' dans chaque notification"
+    },
+    {
+      "type": "feature",
+      "description": "Reset automatique des compteurs quand les niveaux redeviennent normaux"
+    },
+    {
+      "type": "feature",
+      "description": "Support multi-marques avec mapping SNMP intelligent"
+    },
+    {
+      "type": "feature",
+      "description": "Historique complet des alertes dans base de données"
+    },
+    {
+      "type": "feature",
+      "description": "3 tables dédiées : excludedprinters, states, alerts"
+    },
+    {
+      "type": "feature",
+      "description": "Support de tous types de consommables : toners (CMJN), drums (CMJN)"
+    },
+    {
+      "type": "documentation",
+      "description": "README complet et présentable pour GitHub"
+    },
+    {
+      "type": "documentation",
+      "description": "Guide d'installation détaillé (INSTALL.md)"
+    },
+    {
+      "type": "documentation",
+      "description": "CHANGELOG avec format Keep a Changelog"
+    },
+    {
+      "type": "improvement",
+      "description": "Localisation française complète (fr_FR)"
+    },
+    {
+      "type": "improvement",
+      "description": "Licence GPLv3+ complète incluse"
+    },
+    {
+      "type": "improvement",
+      "description": "Architecture PSR-4 avec autoloading"
     }
-  }
+  ]
 }

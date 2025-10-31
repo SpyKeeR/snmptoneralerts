@@ -1,407 +1,1180 @@
-# Guide d'installation - SNMP Toner Alerts
+# 📦 Guide d'installation et de configuration - SNMP Toner Alerts
 
-## Table des matières
+> **Documentation complète pour l'installation, la configuration avancée et le dépannage du plugin**
 
-1. [Prérequis](#prérequis)
-2. [Installation](#installation)
-3. [Configuration](#configuration)
-4. [Actions automatiques](#actions-automatiques)
-5. [Templates de notifications](#templates-de-notifications)
-6. [Dépannage](#dépannage)
+---
 
-## Prérequis
+## 📋 Table des matières
 
-### Logiciels requis
+1. [Prérequis](#-prérequis)
+2. [Installation](#-installation)
+3. [Configuration](#️-configuration)
+4. [Actions automatiques](#-actions-automatiques)
+5. [Templates de notifications](#-templates-de-notifications)
+6. [Architecture technique](#️-architecture-technique)
+7. [Dépannage](#-dépannage)
 
-- **GLPI**: Version 11.0.0 minimum
-- **PHP**: Version 8.2 ou supérieure
-- **Base de données**: MySQL/MariaDB compatible avec GLPI
+---
 
-### Configuration GLPI
+## 🔧 Prérequis
 
-- Plugin NetInventory installé et configuré
-- NetDiscovery actif pour la découverte des imprimantes
-- Remontée SNMP des imprimantes configurée
-- Système de notifications GLPI fonctionnel
+### Version minimale requise
 
-### Vérifications préalables
+| Composant | Version | Vérification |
+|-----------|---------|--------------|
+| **GLPI** | 11.0.0+ | Administration → À propos |
+| **PHP** | 8.2+ | `php -v` |
+| **MySQL / MariaDB** | - | Via GLPI |
 
-1. Vérifier que les imprimantes remontent des données SNMP:
-   ```sql
-   SELECT COUNT(*) FROM glpi_printers_cartridgeinfos;
-   ```
-   Ce nombre doit être > 0
+### Extensions PHP requises
 
-2. Vérifier la version de PHP:
-   ```bash
-   php -v
-   ```
+```bash
+# Vérifier les extensions installées
+php -m | grep -E 'mysqli|pdo_mysql|mbstring|json'
 
-## Installation
+# Si manquantes, installer:
+sudo apt-get install php8.2-mysql php8.2-mbstring
+sudo systemctl restart apache2  # ou php-fpm
+```
 
-### Méthode 1: Téléchargement manuel
+### Plugins GLPI requis
 
-1. Télécharger la dernière version depuis [GitHub Releases](https://github.com/SpyKeeR/snmptoneralerts/releases)
+| Plugin | Rôle | État |
+|--------|------|------|
+| **NetDiscovery** | Découverte réseau | ✅ Actif |
+| **NetInventory** | Inventaire SNMP | ✅ Actif |
 
-2. Extraire l'archive dans le répertoire plugins de GLPI:
-   ```bash
-   cd /var/www/html/glpi/plugins
-   unzip snmptoneralerts-1.0.2.zip
-   mv snmptoneralerts-1.0.2 snmptoneralerts
-   ```
+**Vérifier l'inventaire SNMP** :
 
-3. Ajuster les permissions:
-   ```bash
-   chown -R www-data:www-data snmptoneralerts
-   chmod -R 755 snmptoneralerts
-   ```
+```sql
+-- Doit retourner des enregistrements
+SELECT p.name, c.property, c.value
+FROM glpi_printers p
+JOIN glpi_printers_cartridgeinfos c ON c.printers_id = p.id
+LIMIT 10;
+```
 
-### Méthode 2: Git
+Si aucun résultat :
+1. Vérifier que NetInventory est configuré avec les credentials SNMP
+2. Relancer un inventaire sur une imprimante test
+3. Vérifier que l'imprimante supporte SNMP v1/v2c/v3
 
-1. Cloner le dépôt:
-   ```bash
-   cd /var/www/html/glpi/plugins
-   git clone https://github.com/SpyKeeR/snmptoneralerts.git
-   ```
+### Permissions système
 
-2. Installer les dépendances Composer (optionnel, pour développement):
-   ```bash
-   cd snmptoneralerts
-   composer install
-   ```
+```bash
+# Le serveur Web doit pouvoir lire le plugin
+chown -R www-data:www-data /var/www/html/glpi/plugins/snmptoneralerts
+chmod -R 755 /var/www/html/glpi/plugins/snmptoneralerts
 
-### Activation dans GLPI
+# Vérifier l'utilisateur du serveur Web
+ps aux | grep -E 'apache|nginx|php-fpm' | head -1
+```
 
-1. Se connecter à GLPI en tant qu'administrateur
+---
 
-2. Aller dans **Configuration > Plugins**
+## 📥 Installation
 
-3. Localiser "SNMP Toner Alerts" dans la liste
+### Méthode 1 : Téléchargement manuel (recommandé)
 
-4. Cliquer sur **Installer**
+**Depuis l'interface GitHub :**
 
-5. Cliquer sur **Activer**
+1. Aller sur [https://github.com/SpyKeeR/snmptoneralerts](https://github.com/SpyKeeR/snmptoneralerts)
+2. Cliquer sur le bouton **Code** (vert)
+3. Sélectionner **Download ZIP**
+4. Sauvegarder `snmptoneralerts-main.zip` sur votre ordinateur
+
+**Installation sur le serveur :**
+
+```bash
+# 1. Transférer le fichier ZIP sur le serveur (via SCP, FTP, ou autre)
+# Exemple avec SCP :
+scp snmptoneralerts-main.zip user@serveur:/tmp/
+
+# 2. Se connecter au serveur et extraire
+cd /var/www/html/glpi/plugins
+unzip /tmp/snmptoneralerts-main.zip
+
+# 3. Renommer le dossier (retirer le suffixe -main ou -master)
+mv snmptoneralerts-main snmptoneralerts
+
+# 4. Permissions
+chown -R www-data:www-data snmptoneralerts
+chmod -R 755 snmptoneralerts
+
+# 5. Vérifier la structure
+ls -la snmptoneralerts/
+# Doit contenir: setup.php, hook.php, src/, front/, locales/
+```
+
+**Alternative : Téléchargement direct depuis le serveur**
+
+```bash
+# Télécharger directement l'archive ZIP depuis GitHub
+cd /var/www/html/glpi/plugins
+wget https://github.com/SpyKeeR/snmptoneralerts/archive/refs/heads/main.zip -O snmptoneralerts.zip
+
+# Extraire et renommer
+unzip snmptoneralerts.zip
+mv snmptoneralerts-main snmptoneralerts
+
+# Permissions
+chown -R www-data:www-data snmptoneralerts
+chmod -R 755 snmptoneralerts
+```
+
+### Méthode 2 : Git (recommandé pour les développeurs)
+
+```bash
+# 1. Cloner le dépôt
+cd /var/www/html/glpi/plugins
+git clone https://github.com/SpyKeeR/snmptoneralerts.git
+
+# 2. Installer les dépendances (si Composer)
+cd snmptoneralerts
+composer install --no-dev --optimize-autoloader
+
+# 3. Permissions
+cd ..
+chown -R www-data:www-data snmptoneralerts
+chmod -R 755 snmptoneralerts
+```
+
+### Activation du plugin
+
+1. Aller dans **Configuration → Plugins**
+2. Localiser "SNMP Toner Alerts" dans la liste
+3. **Statut** : Nouveau → Cliquer sur **Installer**
+4. **Statut** : Non actif → Cliquer sur **Activer**
 
 ### Vérification de l'installation
 
-Après activation, 3 nouvelles tables doivent être créées:
-- `glpi_plugin_snmptoneralerts_excludedprinters`
-- `glpi_plugin_snmptoneralerts_states`
-- `glpi_plugin_snmptoneralerts_alerts`
+**Vérifier les tables créées** :
 
-Vérification:
 ```sql
+-- Doit retourner 4 tables
 SHOW TABLES LIKE 'glpi_plugin_snmptoneralerts%';
+
+-- Structure attendue:
+-- glpi_plugin_snmptoneralerts_alerts
+-- glpi_plugin_snmptoneralerts_configs
+-- glpi_plugin_snmptoneralerts_excludedprinters
+-- glpi_plugin_snmptoneralerts_states
 ```
 
-## Configuration
+**Vérifier les CronTasks** :
 
-### Configuration globale
+```sql
+SELECT name, state FROM glpi_crontasks WHERE itemtype = 'PluginSnmptonealertsTonerMonitor';
+```
 
-1. Aller dans **Configuration > SNMP Toner Alerts**
+**Vérifier l'accès à la configuration** :
 
-2. **Seuil d'alerte (%)**
-   - Valeur par défaut: 20%
-   - Définit le niveau en dessous duquel une alerte est déclenchée
-   - Recommandé: entre 15% et 25%
+1. Menu GLPI → **Configuration**
+2. Vérifier présence de **SNMP Toner Alerts** dans la section "Plugins"
 
-3. **Destinataires emails**
-   - Entrer les adresses séparées par des virgules
-   - Exemple: `admin@example.com, technique@example.com`
+---
 
-4. **Fréquence de vérification**
-   - Valeur par défaut: 6 heures (4 fois par jour)
-   - Plage recommandée: 4 à 12 heures
+## ⚙️ Configuration
 
-5. **Nombre maximum d'alertes quotidiennes**
-   - Valeur par défaut: 3
-   - Après ce nombre, passage en mode récapitulatif hebdomadaire
+### Configuration de base
 
-6. **Horaires**
-   - Alerte journalière: 08:00 (configurable)
-   - Récapitulatif hebdomadaire: Vendredi 12:00
+1. Aller dans **Configuration → SNMP Toner Alerts**
+
+2. **Seuil d'alerte (%)** :
+   - Valeur par défaut : `20%`
+   - Plage recommandée : `15%` à `25%`
+   - ⚠️ Trop bas = trop d'alertes / Trop haut = risque de panne
+
+3. **Destinataires emails** :
+   ```
+   admin@example.com, technique@example.com, dsi@example.com
+   ```
+   - Séparés par des virgules
+   - Valider la syntaxe des emails
+
+4. **Fréquence de vérification** :
+   - Valeur par défaut : `6 heures` (4 vérifications/jour)
+   - Recommandé : entre `4h` et `12h`
+   - Impact : fréquence de CheckTonerLevels CronTask
+
+5. **Nombre maximum d'alertes quotidiennes** :
+   - Valeur par défaut : `3`
+   - Après dépassement → passage en récapitulatif hebdomadaire
+   - Recommandé : `3` à `5`
+
+6. **Horaires d'envoi** :
+   - Alertes journalières : `08:00` (configurable via crontab système)
+   - Récapitulatif hebdomadaire : `Vendredi 12:00`
 
 7. Cliquer sur **Enregistrer**
 
-### Exclusion d'imprimantes
+### Vérification de la configuration
 
-Certaines imprimantes peuvent remonter des données SNMP incorrectes. Pour les exclure:
-
-1. Dans la page de configuration, section "Gestion des imprimantes exclues"
-
-2. Sélectionner l'imprimante dans la liste déroulante
-
-3. Entrer une raison (ex: "Données SNMP aberrantes")
-
-4. Cliquer sur **Ajouter**
-
-### Gestion des cartouches
-
-Pour que le plugin puisse afficher les références de cartouches:
-
-1. Aller dans **Parc > Cartouches**
-
-2. Pour chaque modèle de cartouche, remplir le champ **Commentaire** avec la couleur:
-   - "black" ou "noir" pour les toners noirs
-   - "cyan" pour les cyan
-   - "magenta" pour les magenta
-   - "yellow" ou "jaune" pour les jaunes
-   - "drum black" pour les blocs image noirs
-
-3. Associer les cartouches aux modèles d'imprimantes
-
-## Actions automatiques
-
-### Configuration des CronTasks
-
-1. Aller dans **Configuration > Actions automatiques**
-
-2. Rechercher les 3 tâches du plugin:
-
-#### CheckTonerLevels
-- **Fréquence**: Toutes les 6 heures
-- **Statut**: Activé
-- **Mode**: Externe (CLI recommandé)
-- **Action**: Vérifie les niveaux et met à jour les états
-
-#### SendDailyAlerts
-- **Fréquence**: 1 fois par jour
-- **Statut**: Activé
-- **Mode**: Externe
-- **Heure**: 08:00 (via planificateur système)
-- **Action**: Envoie les alertes quotidiennes
-
-#### SendWeeklyRecap
-- **Fréquence**: 1 fois par semaine
-- **Statut**: Activé
-- **Mode**: Externe
-- **Jour**: Vendredi à 12:00
-- **Action**: Envoie le récapitulatif hebdomadaire
-
-### Configuration Cron système
-
-Pour une exécution optimale, configurer les tâches cron système:
-
-```bash
-# Éditer le crontab
-crontab -e
-
-# Ajouter les lignes suivantes
-# Vérification des niveaux toutes les 6 heures
-0 */6 * * * /usr/bin/php /var/www/html/glpi/front/cron.php --force CheckTonerLevels
-
-# Alertes journalières à 8h
-0 8 * * * /usr/bin/php /var/www/html/glpi/front/cron.php --force SendDailyAlerts
-
-# Récap hebdomadaire vendredi à 12h
-0 12 * * 5 /usr/bin/php /var/www/html/glpi/front/cron.php --force SendWeeklyRecap
+```sql
+-- Voir la configuration active
+SELECT * FROM glpi_plugin_snmptoneralerts_configs ORDER BY id DESC LIMIT 1;
 ```
 
-## Templates de notifications
+### Exclusion d'imprimantes
 
-### Fonctionnement des templates GLPI
+Certaines imprimantes remontent des données SNMP incorrectes (100% constant, valeurs négatives, etc.).
 
-Le plugin utilise le système de notifications intégré de GLPI. Les templates sont **entièrement modifiables** via l'interface GLPI sans toucher au code.
+**Via l'interface** :
+
+1. **Configuration → SNMP Toner Alerts** → Section "Gestion des imprimantes exclues"
+2. **Imprimante** : Sélectionner dans la liste déroulante
+3. **Raison** : Exemple "Données SNMP aberrantes" ou "Imprimante hors service"
+4. Cliquer sur **Ajouter**
+
+**Via SQL (si besoin)** :
+
+```sql
+-- Lister les imprimantes avec données SNMP
+SELECT p.id, p.name
+FROM glpi_printers p
+JOIN glpi_printers_cartridgeinfos c ON c.printers_id = p.id
+GROUP BY p.id;
+
+-- Exclure une imprimante (ID 42)
+INSERT INTO glpi_plugin_snmptoneralerts_excludedprinters (printers_id, reason)
+VALUES (42, 'Données SNMP incorrectes');
+
+-- Voir les exclusions
+SELECT e.id, p.name, e.reason, e.excluded_at
+FROM glpi_plugin_snmptoneralerts_excludedprinters e
+JOIN glpi_printers p ON p.id = e.printers_id;
+```
+
+### Gestion des cartouches et références
+
+Le plugin affiche automatiquement les **références de cartouches** si elles sont liées aux modèles d'imprimantes dans GLPI.
+
+**Configuration des références** :
+
+1. Aller dans **Gestion → Modèles d'imprimantes**
+2. Sélectionner le modèle (ex: "HP LaserJet Pro 400")
+3. Onglet **Cartouches compatibles** → Ajouter les références
+
+4. Éditer chaque cartouche dans **Gestion → Cartouches** :
+   - Champ **Référence** : `CF400X`
+   - Champ **Commentaire** : Ajouter la couleur pour le mapping :
+     * `black` ou `noir` → Toner noir
+     * `cyan` → Toner cyan
+     * `magenta` → Toner magenta
+     * `yellow` ou `jaune` → Toner jaune
+     * `drum black` → Bloc image noir
+
+**Mapping SNMP → Cartouches** :
+
+Le plugin utilise la correspondance suivante :
+
+| Propriété SNMP (`glpi_printers_cartridgeinfos.property`) | Mots-clés recherchés dans `comment` |
+|----------------------------------------------------------|-------------------------------------|
+| `tonerblack` | black, noir, bk |
+| `tonercyan` | cyan, c |
+| `tonermagenta` | magenta, m |
+| `toneryellow` | yellow, jaune, y |
+
+**Vérifier les associations** :
+
+```sql
+-- Voir les cartouches compatibles avec références
+SELECT 
+    pm.name AS modele,
+    ci.ref AS reference,
+    ci.comment AS couleur
+FROM glpi_printermodels pm
+JOIN glpi_cartridgeitems_printermodels cpm ON cpm.printermodels_id = pm.id
+JOIN glpi_cartridgeitems ci ON ci.id = cpm.cartridgeitems_id
+WHERE ci.comment IS NOT NULL AND ci.comment != '';
+```
+
+---
+
+## 🔄 Actions automatiques
+
+### Vue d'ensemble des CronTasks
+
+Le plugin utilise **3 tâches automatiques** :
+
+| CronTask | Rôle | Fréquence | Horaire recommandé |
+|----------|------|-----------|-------------------|
+| **CheckTonerLevels** | Vérifie les niveaux SNMP et met à jour les états/compteurs | Toutes les 6h | 00:00, 06:00, 12:00, 18:00 |
+| **SendDailyAlerts** | Envoie alertes pour toners avec compteur ≤ 3 | Quotidien | 08:00 |
+| **SendWeeklyRecap** | Envoie récap pour toners avec compteur > 3 | Hebdomadaire | Vendredi 12:00 |
+
+### Configuration dans GLPI
+
+1. Aller dans **Configuration → Actions automatiques**
+
+2. Rechercher "Toner" ou filtrer par plugin "SNMP Toner Alerts"
+
+3. Pour chaque tâche, configurer :
+
+#### CheckTonerLevels
+
+- **État** : Actif ✅
+- **Mode d'exécution** : CLI (recommandé) ou GLPI
+- **Fréquence** : `21600` secondes (6h)
+- **État de l'exécution** : À planifier
+
+#### SendDailyAlerts
+
+- **État** : Actif ✅
+- **Mode d'exécution** : CLI (via cron système)
+- **Fréquence** : `86400` secondes (24h)
+- **État de l'exécution** : À planifier
+
+#### SendWeeklyRecap
+
+- **État** : Actif ✅
+- **Mode d'exécution** : CLI (via cron système)
+- **Fréquence** : `604800` secondes (7 jours)
+- **État de l'exécution** : À planifier
+
+### Configuration Cron système (recommandé)
+
+Pour une exécution **précise et fiable**, utiliser le crontab système.
+
+**Éditer le crontab** :
+
+```bash
+# En tant que root ou avec sudo
+crontab -e
+```
+
+**Ajouter les lignes suivantes** :
+
+```bash
+# SNMP Toner Alerts - Vérification des niveaux toutes les 6 heures
+0 */6 * * * /usr/bin/php /var/www/html/glpi/front/cron.php --force CheckTonerLevels >> /var/log/glpi/cron.log 2>&1
+
+# SNMP Toner Alerts - Alertes journalières à 8h00
+0 8 * * * /usr/bin/php /var/www/html/glpi/front/cron.php --force SendDailyAlerts >> /var/log/glpi/cron.log 2>&1
+
+# SNMP Toner Alerts - Récapitulatif hebdomadaire vendredi à 12h00
+0 12 * * 5 /usr/bin/php /var/www/html/glpi/front/cron.php --force SendWeeklyRecap >> /var/log/glpi/cron.log 2>&1
+```
+
+**Variantes** :
+
+```bash
+# Avec le binaire GLPI CLI (si disponible)
+0 */6 * * * /usr/bin/php /var/www/html/glpi/bin/console glpi:cron:task CheckTonerLevels
+
+# Avec authentification utilisateur spécifique
+0 8 * * * /usr/bin/php /var/www/html/glpi/front/cron.php --force SendDailyAlerts --uid=2
+
+# Avec verbosité pour debug
+0 12 * * 5 /usr/bin/php /var/www/html/glpi/front/cron.php --force SendWeeklyRecap -vvv
+```
+
+**Vérifier le crontab** :
+
+```bash
+# Lister les tâches cron
+crontab -l | grep -i snmp
+
+# Tester l'exécution manuelle
+/usr/bin/php /var/www/html/glpi/front/cron.php --force CheckTonerLevels
+
+# Vérifier les logs
+tail -f /var/log/glpi/cron.log
+```
+
+### Exécution manuelle (test)
+
+**Via l'interface GLPI** :
+
+1. **Configuration → Actions automatiques**
+2. Cliquer sur la tâche (ex: "SendDailyAlerts")
+3. Bouton **Exécuter** en haut à droite
+4. Vérifier le résultat dans l'historique
+
+**Via CLI** :
+
+```bash
+# Forcer l'exécution immédiate
+php /var/www/html/glpi/front/cron.php --force CheckTonerLevels
+
+# Verbose pour debug
+php /var/www/html/glpi/front/cron.php --force SendDailyAlerts -vvv
+
+# Toutes les tâches en attente
+php /var/www/html/glpi/front/cron.php
+```
+
+### Surveillance des CronTasks
+
+**Vérifier l'historique** :
+
+```sql
+-- Dernières exécutions
+SELECT 
+    c.name,
+    c.lastrun,
+    c.state,
+    cl.date AS dernier_log,
+    cl.state AS etat_log
+FROM glpi_crontasks c
+LEFT JOIN glpi_crontasklogs cl ON cl.crontasks_id = c.id
+WHERE c.itemtype = 'PluginSnmptonealertsTonerMonitor'
+ORDER BY cl.date DESC
+LIMIT 10;
+```
+
+**Logs GLPI** :
+
+```bash
+# Erreurs générales
+tail -f /var/log/glpi/php-errors.log
+
+# Logs cron
+tail -f /var/log/glpi/cron.log
+
+# SQL en cas d'erreur
+tail -f /var/log/glpi/sql-errors.log
+```
+
+---
+
+## 📧 Templates de notifications
+
+### Fonctionnement
+
+Le plugin utilise le **système de notifications natif de GLPI** :
+
+1. **Événements** déclenchés par le plugin :
+   - `toner_alert_daily` : Alerte journalière
+   - `toner_alert_weekly` : Récapitulatif hebdomadaire
+
+2. **Notifications GLPI** associent événements → templates → destinataires
+
+3. **Templates** sont modifiables via l'interface sans toucher au code
 
 ### Accès aux templates
 
-1. Aller dans **Configuration > Notifications > Templates de notifications**
+**Configuration → Notifications → Templates de notifications**
 
-2. Rechercher les templates créés par le plugin:
-   - "SNMP Toner Alert - Daily" (Alerte journalière)
-   - "SNMP Toner Alert - Weekly" (Récapitulatif hebdomadaire)
+Rechercher :
+- `SNMP Toner Alert - Daily`
+- `SNMP Toner Alert - Weekly`
 
 ### Balises disponibles
 
-Le plugin fournit les balises suivantes pour personnaliser les emails:
+Le plugin injecte les balises suivantes dans les templates :
 
-| Balise | Description | Exemple |
-|--------|-------------|---------|
-| `##toner.threshold##` | Seuil d'alerte configuré | 20 |
-| `##toner.count##` | Nombre d'imprimantes en alerte | 5 |
-| `##toner.alert_type##` | Type d'alerte | Journalière / Hebdomadaire |
-| `##PRINTERS##` | Liste formatée des imprimantes | Bloc de texte détaillé |
+| Balise | Type | Description | Exemple |
+|--------|------|-------------|---------|
+| `##toner.threshold##` | Scalaire | Seuil d'alerte configuré (%) | `20` |
+| `##toner.count##` | Scalaire | Nombre d'imprimantes en alerte | `5` |
+| `##toner.alert_type##` | Scalaire | Type d'alerte | `Journalière` / `Hebdomadaire` |
+| `##PRINTERS##` | Bloc | Liste détaillée des imprimantes et toners | Voir structure ci-dessous |
 
 ### Structure de la balise ##PRINTERS##
 
-Cette balise contient pour chaque imprimante:
+Cette balise contient un **bloc de texte formaté** avec toutes les imprimantes en alerte :
+
 ```
-Imprimante: [Nom de l'imprimante]
-Localisation: [Lieu]
-Modèle: [Modèle]
-  - [Couleur] ([Référence]): [X]% (Alerte [N]/[Max])
-  - ...
+Imprimante: HP-LaserJet-Pro-400-RDC
+Localisation: Bâtiment A > RDC > Accueil
+Modèle: HP LaserJet Pro 400 color M451dn
+
+Toners concernés:
+  - Toner cyan (Réf: CF401X): 15% (Alerte 2/3)
+  - Toner magenta (Réf: CF403X): 18% (Alerte 1/3)
+
+─────────────────────────────────────
+
+Imprimante: Xerox-WorkCentre-5335-Etage1
+Localisation: Bâtiment B > Étage 1 > Bureau
+Modèle: Xerox WorkCentre 5335
+
+Toners concernés:
+  - Toner noir (Réf: 006R01606): 8% (Alerte 5/3 - Récap hebdomadaire)
+
+─────────────────────────────────────
 ```
 
-### Modification des templates
+**Détails de la structure** :
 
-#### Dans l'interface GLPI
+- **Nom imprimante** : `glpi_printers.name`
+- **Localisation** : Chemin complet (Entité > Lieu > Sous-lieu)
+- **Modèle** : `glpi_printermodels.name`
+- **Toners** : Liste avec couleur, référence (si disponible), niveau %, compteur d'alertes
+- **Séparateurs** : Lignes de tirets pour lisibilité
 
-1. Aller dans **Configuration > Notifications > Templates de notifications**
+### Exemple de template simple (texte)
 
-2. Cliquer sur le template à modifier (ex: "SNMP Toner Alert - Daily")
+**Sujet** :
+```
+[GLPI] Alertes toners - ##toner.alert_type##
+```
 
-3. Onglet **Traductions**:
-   - Sélectionner la langue (Français, Anglais, etc.)
-   - Modifier le **Sujet de l'email**
-   - Modifier le **Corps de l'email** (HTML et/ou Texte)
+**Corps (texte brut)** :
+```
+Bonjour,
 
-4. **Exemple de template HTML personnalisé**:
+##toner.count## imprimante(s) ont des toners en dessous du seuil d'alerte (##toner.threshold##%).
+
+Type d'alerte: ##toner.alert_type##
+
+──────────────────────────────────────
+##PRINTERS##
+──────────────────────────────────────
+
+Merci de vérifier les niveaux et de commander les cartouches nécessaires.
+
+---
+SNMP Toner Alerts pour GLPI
+Ce message est envoyé automatiquement.
+```
+
+### Exemple de template avancé (HTML)
+
+**Corps (HTML)** :
+
 ```html
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
+    <meta charset="UTF-8">
     <style>
-        body { font-family: Arial, sans-serif; }
-        .alert-box { 
-            background-color: #fff3cd; 
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin: 20px 0;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
         }
-        .printer-info {
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .alert-info {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 20px 30px;
+            border-radius: 4px;
+        }
+        .alert-info p {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .printer-block {
             background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .printer-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        .printer-details {
+            color: #6c757d;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .toner-list {
+            margin-top: 15px;
+            padding-left: 20px;
+        }
+        .toner-item {
+            background-color: #ffffff;
+            border-left: 3px solid #dc3545;
             padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+        .footer {
+            background-color: #343a40;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #80bdff;
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
-    <h2>🖨️ Alerte SNMP Toner - ##toner.alert_type##</h2>
-    
-    <div class="alert-box">
-        <p><strong>Seuil configuré:</strong> ##toner.threshold##%</p>
-        <p><strong>Nombre d'imprimantes concernées:</strong> ##toner.count##</p>
-    </div>
+    <div class="container">
+        <div class="header">
+            <h1>🖨️ SNMP Toner Alerts</h1>
+            <p>Notification automatique - ##toner.alert_type##</p>
+        </div>
 
-    <h3>Détails des alertes:</h3>
-    <div class="printer-info">
-        <pre>##PRINTERS##</pre>
-    </div>
+        <div class="alert-info">
+            <p><strong>📊 Seuil configuré:</strong> ##toner.threshold##%</p>
+            <p><strong>🚨 Nombre d'imprimantes concernées:</strong> ##toner.count##</p>
+        </div>
 
-    <p>Merci de vérifier les niveaux et de commander les cartouches nécessaires.</p>
-    
-    <hr>
-    <p style="color: #666; font-size: 12px;">
-        Ce message est envoyé automatiquement par le plugin SNMP Toner Alerts.
-    </p>
+        <div class="content">
+            <h2>Détails des alertes</h2>
+            <pre style="font-family: inherit; white-space: pre-wrap; background: #f8f9fa; padding: 15px; border-radius: 4px;">##PRINTERS##</pre>
+
+            <p style="margin-top: 30px; padding: 15px; background-color: #e9ecef; border-radius: 4px;">
+                <strong>Actions recommandées:</strong>
+                <ul>
+                    <li>Vérifier les niveaux réels sur les imprimantes</li>
+                    <li>Commander les cartouches nécessaires</li>
+                    <li>Prévoir le remplacement selon les délais de livraison</li>
+                </ul>
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>Ce message est envoyé automatiquement par le plugin <strong>SNMP Toner Alerts</strong></p>
+            <p>Ne pas répondre à cet email</p>
+        </div>
+    </div>
 </body>
 </html>
 ```
 
-5. Sauvegarder
+### Modification des templates
 
-#### Templates différents selon le type d'alerte
+**Via l'interface** :
 
-Le plugin envoie deux types d'alertes avec des templates différents:
+1. **Configuration → Notifications → Templates de notifications**
+2. Cliquer sur le template (ex: "SNMP Toner Alert - Daily")
+3. Onglet **Traductions**
+4. Sélectionner la langue (Français / Anglais)
+5. Modifier :
+   - **Sujet de l'email**
+   - **Corps de l'email** (Texte et/ou HTML)
+6. **Sauvegarder**
 
-**Alerte journalière (Daily)**:
-- Événement: `toner_alert_daily`
-- Envoyée chaque matin (8h par défaut)
-- Pour les imprimantes n'ayant pas atteint le maximum d'alertes
+**Prévisualisation** :
 
-**Récapitulatif hebdomadaire (Weekly)**:
-- Événement: `toner_alert_weekly`
-- Envoyée le vendredi midi
-- Pour les imprimantes ayant atteint le maximum d'alertes quotidiennes
+Utiliser **Exécuter** sur le CronTask pour recevoir un email de test.
 
-### Association des templates aux notifications
+### Association notifications → templates
 
-1. Aller dans **Configuration > Notifications > Notifications**
+**Configuration → Notifications → Notifications**
 
-2. Rechercher "SNMP Toner Alert"
+Rechercher "SNMP Toner Alert" :
 
-3. Vérifier que les événements sont bien associés:
-   - `Alerte toner journalière` → Template "Daily"
-   - `Récapitulatif toner hebdomadaire` → Template "Weekly"
+| Notification | Événement | Template |
+|--------------|-----------|----------|
+| SNMP Toner Alert - Daily | `toner_alert_daily` | SNMP Toner Alert - Daily |
+| SNMP Toner Alert - Weekly | `toner_alert_weekly` | SNMP Toner Alert - Weekly |
 
-4. Configurer les destinataires (ou utiliser ceux de la configuration du plugin)
+**Vérifier** :
+- Statut : **Actif** ✅
+- Destinataires : Utilise emails de la config plugin ou **ajouter manuellement** ici
+- Mode : Courrier électronique
 
 ### Test des notifications
 
-Pour tester les notifications sans attendre le cron:
+**Depuis l'interface** :
 
-1. Aller dans **Configuration > Actions automatiques**
+1. **Configuration → Actions automatiques**
+2. Cliquer sur "SendDailyAlerts"
+3. Bouton **Exécuter**
+4. Vérifier réception email
 
-2. Cliquer sur "SendDailyAlerts" ou "SendWeeklyRecap"
+**Depuis CLI** :
 
-3. Cliquer sur **Exécuter** (bouton en haut à droite)
+```bash
+# Forcer envoi des alertes
+php /var/www/html/glpi/front/cron.php --force SendDailyAlerts
 
-4. Vérifier la réception de l'email
+# Vérifier les logs
+tail -f /var/log/glpi/php-errors.log
+```
+
+**Vérification SQL** :
+
+```sql
+-- Voir les notifications en file d'attente
+SELECT * FROM glpi_queuednotifications WHERE itemtype = 'PluginSnmptonealertsNotificationTargetTonerAlert';
+
+-- Historique des envois
+SELECT * FROM glpi_notificationemails ORDER BY id DESC LIMIT 10;
+```
 
 ### Personnalisation avancée
 
-Pour une personnalisation plus poussée, vous pouvez:
+**Créer plusieurs templates pour différents destinataires** :
 
-1. **Créer plusieurs templates** pour différents destinataires
-2. **Ajouter des conditions** dans les notifications GLPI
-3. **Utiliser des variables CSS** pour adapter le style
-4. **Inclure des images** (logos) via URLs absolues
+1. Dupliquer un template existant
+2. Modifier le contenu (ex: version courte pour SMS, version longue pour email)
+3. Créer plusieurs notifications associées au même événement
+4. Ajouter des conditions (ex: par entité)
 
-## Dépannage
+**Utiliser des conditions** :
 
-### Aucune alerte envoyée
-
-1. Vérifier que les emails sont configurés dans GLPI
-2. Vérifier que les CronTasks sont actives
-3. Consulter les logs GLPI: `/var/log/glpi/glpi.log`
-4. Vérifier manuellement les niveaux:
-   ```sql
-   SELECT * FROM glpi_plugin_snmptoneralerts_states WHERE is_alert = 1;
-   ```
-
-### Données SNMP manquantes
-
-1. Vérifier NetInventory:
-   ```sql
-   SELECT COUNT(*) FROM glpi_printers_cartridgeinfos;
-   ```
-
-2. Relancer un inventaire SNMP sur une imprimante test
-
-3. Vérifier la configuration SNMP de l'imprimante (communauté SNMP)
-
-### Alertes en double
-
-1. Vérifier qu'il n'y a pas de cron en double (système + GLPI)
-2. Consulter le compteur d'alertes:
-   ```sql
-   SELECT * FROM glpi_plugin_snmptoneralerts_states;
-   ```
-
-### Templates non modifiables
-
-1. Vérifier les droits utilisateur dans GLPI
-2. S'assurer d'être en profil "Super-Admin"
-3. Vérifier que les templates ne sont pas verrouillés
-
-### Erreurs PHP
-
-Vérifier les logs d'erreurs PHP:
-```bash
-tail -f /var/log/php-fpm/error.log
-# ou
-tail -f /var/log/apache2/error.log
-```
-
-### Désinstallation
-
-Si besoin de réinstaller:
-
-1. Désactiver le plugin
-2. Désinstaller (supprime les tables et données)
-3. Supprimer le dossier du plugin
-4. Réinstaller en suivant la procédure
-
-**⚠️ Attention**: La désinstallation supprime toutes les données (historique des alertes, exclusions, etc.)
-
-## Support
-
-- **Documentation**: [README.md](README.md)
-- **Issues**: [GitHub Issues](https://github.com/SpyKeeR/snmptoneralerts/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/SpyKeeR/snmptoneralerts/discussions)
+Dans **Configuration → Notifications → Notifications** :
+- Ajouter des critères de destination (Entité, Profil, Groupe)
+- Permet d'envoyer des templates différents selon le contexte
 
 ---
 
-**Plugin développé par SpyKeeR** | [GitHub](https://github.com/SpyKeeR/snmptoneralerts) | Licence GPL-3.0
+## 🏗️ Architecture technique
+
+### Schéma de la base de données
+
+```
+┌──────────────────────┐
+│  glpi_printers       │
+│  (table native GLPI) │
+└──────────┬───────────┘
+           │
+           │ 1:N
+           ▼
+┌──────────────────────────────────┐
+│ glpi_printers_cartridgeinfos     │
+│ (NetInventory SNMP)              │
+│ ─────────────────────────────── │
+│ printers_id                      │
+│ property (tonerblack, cyan...)   │
+│ value (15%)                      │
+└──────────┬───────────────────────┘
+           │
+           │ Lecture par CheckTonerLevels
+           ▼
+┌────────────────────────────────────────┐
+│ glpi_plugin_snmptoneralerts_states     │
+│ (États et compteurs)                   │
+│ ──────────────────────────────────────│
+│ printers_id, property_name             │
+│ current_level, alert_count             │
+│ is_alert, last_checked, last_alerted   │
+└──────────┬─────────────────────────────┘
+           │
+           │ Historique
+           ▼
+┌────────────────────────────────────────┐
+│ glpi_plugin_snmptoneralerts_alerts     │
+│ (Historique des alertes)               │
+│ ──────────────────────────────────────│
+│ printers_id, property_name             │
+│ alert_level, alert_type, notified_at   │
+└────────────────────────────────────────┘
+
+┌────────────────────────────────────────────┐
+│ glpi_plugin_snmptoneralerts_configs        │
+│ (Configuration)                            │
+│ ───────────────────────────────────────── │
+│ threshold, recipients, max_daily_alerts    │
+└────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────┐
+│ glpi_plugin_snmptoneralerts_excludedprinters    │
+│ (Imprimantes exclues)                           │
+│ ────────────────────────────────────────────── │
+│ printers_id, reason, excluded_at                │
+└─────────────────────────────────────────────────┘
+```
+
+### Flux de données
+
+```
+1️⃣ NetInventory (SNMP)
+   ↓
+   Collecte données → glpi_printers_cartridgeinfos
+   ↓
+2️⃣ CheckTonerLevels (CronTask toutes les 6h)
+   ↓
+   Lecture cartridgeinfos
+   ↓
+   Comparaison avec seuil
+   ↓
+   Mise à jour states (is_alert, alert_count)
+   ↓
+   Insertion historique alerts
+   ↓
+3️⃣ SendDailyAlerts (CronTask quotidien 08h)
+   ↓
+   Lecture states WHERE is_alert=1 AND alert_count<=3
+   ↓
+   Génération ##PRINTERS##
+   ↓
+   QueuedNotification → Email
+   ↓
+4️⃣ SendWeeklyRecap (CronTask vendredi 12h)
+   ↓
+   Lecture states WHERE is_alert=1 AND alert_count>3
+   ↓
+   Génération ##PRINTERS##
+   ↓
+   QueuedNotification → Email
+```
+
+### Classe principale : TonerMonitor
+
+**Fichier** : `src/TonerMonitor.php`
+
+**Méthodes clés** :
+
+| Méthode | Rôle |
+|---------|------|
+| `checkTonerLevels()` | Vérifie tous les toners, met à jour états et compteurs |
+| `sendDailyAlerts()` | Envoie alertes pour toners avec compteur ≤ max |
+| `sendWeeklyRecapitulation()` | Envoie récap pour toners avec compteur > max |
+| `getTonersInAlert($type)` | Récupère liste imprimantes en alerte |
+| `getCartridgeReference()` | Mapping SNMP → Référence cartouche |
+
+### Classe de notification : NotificationTargetTonerAlert
+
+**Fichier** : `src/NotificationTargetTonerAlert.php`
+
+**Rôle** : Génère contenu des notifications
+
+**Méthodes clés** :
+
+| Méthode | Rôle |
+|---------|------|
+| `addDataForTemplate()` | Injecte balises ##toner.*## et ##PRINTERS## |
+| `formatPrintersBlock()` | Formate le bloc texte avec imprimantes et toners |
+| `getEvents()` | Définit événements (toner_alert_daily, weekly) |
+
+### PSR-4 Autoloading
+
+**composer.json** :
+
+```json
+{
+    "autoload": {
+        "psr-4": {
+            "GlpiPlugin\\Snmptoneralerts\\": "src/"
+        }
+    }
+}
+```
+
+**Namespace** : `GlpiPlugin\Snmptoneralerts\`
+
+**Classes** :
+- `Config`
+- `ItemForm`
+- `NotificationTargetTonerAlert`
+- `TonerMonitor`
+
+### Hooks GLPI
+
+**Fichier** : `hook.php`
+
+| Hook | Action |
+|------|--------|
+| `plugin_snmptoneralerts_install()` | Création tables, notifications, crontasks |
+| `plugin_snmptoneralerts_uninstall()` | Suppression tables et données |
+
+---
+
+## 🔍 Dépannage
+
+### 1. Aucune alerte envoyée
+
+**Symptômes** : Pas d'emails reçus malgré toners faibles
+
+**Diagnostics** :
+
+```bash
+# 1. Vérifier configuration email GLPI
+# Administration → Configuration → Notifications → Email
+# Test: Envoyer un email de test
+
+# 2. Vérifier CronTasks actives
+mysql -u glpi -p glpi -e "SELECT name, state, lastrun FROM glpi_crontasks WHERE itemtype = 'PluginSnmptonealertsTonerMonitor';"
+
+# 3. Vérifier états en alerte
+mysql -u glpi -p glpi -e "SELECT COUNT(*) FROM glpi_plugin_snmptoneralerts_states WHERE is_alert = 1;"
+
+# 4. Vérifier données SNMP
+mysql -u glpi -p glpi -e "SELECT COUNT(*) FROM glpi_printers_cartridgeinfos;"
+
+# 5. Consulter logs
+tail -f /var/log/glpi/php-errors.log
+tail -f /var/log/glpi/cron.log
+```
+
+**Solutions** :
+
+- ✅ Activer notifications email dans GLPI
+- ✅ Vérifier destinataires configurés dans plugin
+- ✅ Activer et exécuter CronTasks
+- ✅ Vérifier que des toners sont réellement sous seuil
+- ✅ Relancer un inventaire SNMP
+
+### 2. Données SNMP manquantes
+
+**Symptômes** : `glpi_printers_cartridgeinfos` vide
+
+**Diagnostics** :
+
+```sql
+-- Vérifier table vide
+SELECT COUNT(*) FROM glpi_printers_cartridgeinfos;
+
+-- Vérifier imprimantes inventoriées
+SELECT COUNT(*) FROM glpi_printers WHERE is_deleted = 0;
+```
+
+**Solutions** :
+
+1. **Vérifier NetInventory actif** :
+   - Configuration → Plugins → NetInventory → Actif ✅
+
+2. **Vérifier credentials SNMP** :
+   - Configuration → Inventaire → Équipements réseau
+   - Community SNMP correcte (ex: `public`)
+
+3. **Relancer inventaire manuel** :
+   ```bash
+   # Via CLI NetInventory
+   php /var/www/html/glpi/plugins/fusioninventory/scripts/inventory.php --snmp=192.168.1.100
+   ```
+
+4. **Vérifier SNMP sur l'imprimante** :
+   ```bash
+   # Tester SNMP depuis serveur GLPI
+   snmpwalk -v2c -c public 192.168.1.100 1.3.6.1.2.1.43.11.1.1.9
+   # Doit retourner niveaux toners
+   ```
+
+### 3. Références cartouches manquantes
+
+**Symptômes** : Emails affichent "Réf: N/A"
+
+**Diagnostic** :
+
+```sql
+-- Vérifier associations modèle → cartouches
+SELECT 
+    pm.name AS modele,
+    ci.ref AS reference,
+    ci.comment
+FROM glpi_printermodels pm
+JOIN glpi_cartridgeitems_printermodels cpm ON cpm.printermodels_id = pm.id
+JOIN glpi_cartridgeitems ci ON ci.id = cpm.cartridgeitems_id;
+```
+
+**Solutions** :
+
+1. **Ajouter cartouches au modèle** :
+   - Gestion → Modèles d'imprimantes
+   - Sélectionner modèle
+   - Onglet "Cartouches compatibles" → Ajouter
+
+2. **Renseigner couleur dans commentaire** :
+   - Gestion → Cartouches
+   - Éditer chaque cartouche
+   - Champ "Commentaire" : `black`, `cyan`, `magenta`, `yellow`
+
+### 4. Alertes en double
+
+**Symptômes** : Plusieurs emails pour la même imprimante en quelques minutes
+
+**Diagnostic** :
+
+```sql
+-- Voir compteurs d'alertes
+SELECT p.name, s.property_name, s.alert_count, s.last_alerted
+FROM glpi_plugin_snmptoneralerts_states s
+JOIN glpi_printers p ON p.id = s.printers_id
+WHERE s.is_alert = 1;
+
+-- Historique récent
+SELECT * FROM glpi_plugin_snmptoneralerts_alerts
+WHERE notified_at > NOW() - INTERVAL 1 HOUR;
+```
+
+**Solutions** :
+
+- ❌ Supprimer cron en double : `crontab -l | grep -i snmp`
+- ❌ Désactiver mode interne GLPI si cron système utilisé
+- ✅ Vérifier `last_alerted` met à jour correctement
+
+### 5. Templates non modifiables
+
+**Symptômes** : Bouton "Enregistrer" grisé ou erreur permissions
+
+**Solutions** :
+
+- ✅ Se connecter en profil **Super-Admin**
+- ✅ Vérifier droits : Configuration → Profils → Super-Admin → Notifications (Lecture/Écriture)
+- ✅ Vérifier que template n'est pas verrouillé (champ `is_recursive`)
+
+### 6. Erreurs PHP
+
+**Diagnostic** :
+
+```bash
+# Logs Apache
+tail -f /var/log/apache2/error.log
+
+# Logs PHP-FPM
+tail -f /var/log/php8.2-fpm.log
+
+# Logs GLPI
+tail -f /var/log/glpi/php-errors.log
+tail -f /var/log/glpi/sql-errors.log
+```
+
+**Erreurs courantes** :
+
+| Erreur | Cause | Solution |
+|--------|-------|----------|
+| `Class not found` | Autoload PSR-4 | `composer dump-autoload` |
+| `Table doesn't exist` | Plugin non installé | Réinstaller plugin |
+| `Call to undefined method` | Version GLPI incompatible | Vérifier prérequis ≥11.0 |
+| `Memory exhausted` | Trop d'imprimantes | Augmenter `memory_limit` PHP |
+
+### 7. CronTasks ne s'exécutent pas
+
+**Diagnostic** :
+
+```sql
+-- Voir état des tâches
+SELECT name, state, frequency, lastrun FROM glpi_crontasks 
+WHERE itemtype = 'PluginSnmptonealertsTonerMonitor';
+```
+
+**Solutions** :
+
+1. **Mode CLI non configuré** :
+   - Ajouter tâches cron système (voir section Actions automatiques)
+
+2. **Mode GLPI interne** :
+   - Vérifier que `php -f /var/www/html/glpi/front/cron.php` s'exécute
+   - Ajouter dans crontab : `*/5 * * * * php /var/www/html/glpi/front/cron.php`
+
+3. **Permissions** :
+   ```bash
+   chown www-data:www-data /var/www/html/glpi/front/cron.php
+   chmod 755 /var/www/html/glpi/front/cron.php
+   ```
+
+### 8. Imprimantes exclues par erreur
+
+**Diagnostic** :
+
+```sql
+-- Lister exclusions
+SELECT e.id, p.name, e.reason, e.excluded_at
+FROM glpi_plugin_snmptoneralerts_excludedprinters e
+JOIN glpi_printers p ON p.id = e.printers_id;
+```
+
+**Solution** :
+
+```sql
+-- Supprimer une exclusion (ID 5)
+DELETE FROM glpi_plugin_snmptoneralerts_excludedprinters WHERE id = 5;
+```
+
+Ou via interface : Configuration → SNMP Toner Alerts → Section Exclusions → Supprimer
+
+### 9. Désinstallation / Réinstallation
+
+**En cas de corruption** :
+
+```bash
+# 1. Désactiver le plugin
+# Interface: Configuration → Plugins → SNMP Toner Alerts → Désactiver
+
+# 2. Désinstaller (supprime tables)
+# Interface: Configuration → Plugins → SNMP Toner Alerts → Désinstaller
+
+# 3. Supprimer dossier
+rm -rf /var/www/html/glpi/plugins/snmptoneralerts
+
+# 4. Réinstaller (voir section Installation)
+```
+
+**⚠️ Attention** : Désinstaller supprime **toutes les données** (historique, exclusions, configuration)
+
+**Sauvegarde avant désinstallation** :
+
+```bash
+mysqldump -u root -p glpi \
+  glpi_plugin_snmptoneralerts_alerts \
+  glpi_plugin_snmptoneralerts_configs \
+  glpi_plugin_snmptoneralerts_excludedprinters \
+  glpi_plugin_snmptoneralerts_states \
+  > snmptoneralerts_backup_$(date +%F).sql
+```
+
+---
+
+## 📞 Support et ressources
+
+### Documentation
+
+| Ressource | Lien |
+|-----------|------|
+| 📖 **README** | [README.md](README.md) |
+| 📝 **CHANGELOG** | [CHANGELOG.md](CHANGELOG.md) |
+| ⚖️ **LICENCE** | [LICENSE](LICENSE) |
+
+### Communauté et support
+
+| Canal | Lien |
+|-------|------|
+| 🐛 **Signaler un bug** | [GitHub Issues](https://github.com/SpyKeeR/snmptoneralerts/issues) |
+| 💬 **Poser une question** | [GitHub Discussions](https://github.com/SpyKeeR/snmptoneralerts/discussions) |
+| 🌟 **Proposer une fonctionnalité** | [GitHub Issues (Feature Request)](https://github.com/SpyKeeR/snmptoneralerts/issues/new?labels=enhancement) |
+
+### Avant de signaler un bug
+
+1. ✅ Vérifier que vous utilisez la dernière version
+2. ✅ Consulter cette documentation (section Dépannage)
+3. ✅ Rechercher dans les issues existantes
+4. ✅ Préparer :
+   - Version GLPI
+   - Version PHP
+   - Logs d'erreur (`/var/log/glpi/php-errors.log`)
+   - Capture d'écran si erreur interface
+
+---
+
+## 📜 Licence
+
+**GPL-3.0-or-later** - Voir fichier [LICENSE](LICENSE)
+
+**Résumé des libertés** :
+
+✅ **Utilisation commerciale** : Vous pouvez utiliser ce plugin dans un environnement commercial  
+✅ **Modification** : Vous pouvez modifier le code source  
+✅ **Distribution** : Vous pouvez redistribuer le plugin  
+✅ **Usage privé** : Vous pouvez utiliser en privé
+
+**Obligations** :
+
+⚠️ **Divulgation de la source** : Code source doit rester accessible  
+⚠️ **Licence et copyright** : Conserver les mentions de licence  
+⚠️ **Indiquer les modifications** : Mentionner si le code a été modifié  
+⚠️ **Même licence** : Distribuer sous GPL-3.0
+
+---
+
+**🎉 Merci d'utiliser SNMP Toner Alerts !**
+
+**Développé avec ❤️ par [SpyKeeR](https://github.com/SpyKeeR)**
+
+📅 Dernière mise à jour : 31 octobre 2025

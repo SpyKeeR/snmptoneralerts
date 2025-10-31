@@ -1,0 +1,182 @@
+# SNMP Toner Alerts plugin for GLPI
+# Copyright (C) 2025 SpyKeeR
+# This file is distributed under the same license as the snmptoneralerts package.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: SNMP Toner Alerts 1.0.3\n"
+"Report-Msgid-Bugs-To: https://github.com/SpyKeeR/snmptoneralerts/issues\n"
+"POT-Creation-Date: 2025-10-31 14:00+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# setup.php
+msgid "SNMP Toner Alerts"
+msgstr ""
+
+# src/Config.php
+msgid "SNMP Toner Alerts Configuration"
+msgstr ""
+
+msgid "Threshold percentage (%)"
+msgstr ""
+
+msgid "Alert when toner level is below this percentage"
+msgstr ""
+
+msgid "Email recipients"
+msgstr ""
+
+msgid "Separate multiple emails with commas"
+msgstr ""
+
+msgid "Check frequency (hours)"
+msgstr ""
+
+msgid "How often to check toner levels"
+msgstr ""
+
+msgid "Maximum daily alerts per toner"
+msgstr ""
+
+msgid "After this number, switch to weekly recap"
+msgstr ""
+
+msgid "Enable daily alerts"
+msgstr ""
+
+msgid "Daily alert time"
+msgstr ""
+
+msgid "Enable weekly alerts"
+msgstr ""
+
+msgid "Weekly alert day"
+msgstr ""
+
+msgid "Weekly alert time"
+msgstr ""
+
+msgid "Monday"
+msgstr ""
+
+msgid "Tuesday"
+msgstr ""
+
+msgid "Wednesday"
+msgstr ""
+
+msgid "Thursday"
+msgstr ""
+
+msgid "Friday"
+msgstr ""
+
+msgid "Saturday"
+msgstr ""
+
+msgid "Sunday"
+msgstr ""
+
+# src/TonerMonitor.php
+msgid "Check toner levels from SNMP"
+msgstr ""
+
+msgid "Send daily toner alerts"
+msgstr ""
+
+msgid "Send weekly toner alerts recap"
+msgstr ""
+
+msgid "Unknown"
+msgstr ""
+
+msgid "Not defined"
+msgstr ""
+
+# src/NotificationTargetTonerAlert.php
+msgid "Daily toner alert"
+msgstr ""
+
+msgid "Weekly toner alert recap"
+msgstr ""
+
+msgid "Alert threshold percentage"
+msgstr ""
+
+msgid "Number of printers in alert"
+msgstr ""
+
+msgid "Alert type (daily/weekly)"
+msgstr ""
+
+msgid "Printer name"
+msgstr ""
+
+msgid "Location"
+msgstr ""
+
+msgid "Model"
+msgstr ""
+
+msgid "Toner type"
+msgstr ""
+
+msgid "Toner name"
+msgstr ""
+
+msgid "Current level"
+msgstr ""
+
+msgid "Cartridge reference"
+msgstr ""
+
+msgid "Alert number"
+msgstr ""
+
+msgid "Daily"
+msgstr ""
+
+msgid "Weekly"
+msgstr ""
+
+#, c-format
+msgid "Alert %d/%d"
+msgstr ""
+
+#, c-format
+msgid "Persistent since %s"
+msgstr ""
+
+msgid "Ref"
+msgstr ""
+
+msgid "Black toner"
+msgstr ""
+
+msgid "Cyan toner"
+msgstr ""
+
+msgid "Magenta toner"
+msgstr ""
+
+msgid "Yellow toner"
+msgstr ""
+
+msgid "Black drum"
+msgstr ""
+
+msgid "Cyan drum"
+msgstr ""
+
+msgid "Magenta drum"
+msgstr ""
+
+msgid "Yellow drum"
+msgstr ""

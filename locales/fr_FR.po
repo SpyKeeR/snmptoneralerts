@@ -1,205 +1,183 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# 
-# Translators:
-# DOMBRE Julien <moyo@indepnet.net>, 2011-2012
-# 06c8e5f1ec78ded2ceb41498ec52b068, 2015
-# Johan Cwiklinski <jcwiklinski@teclib.com>, 2016
-# Yoann TERUEL <yoann.teruel@gmail.com>, 2016
+# French translations for SNMP Toner Alerts plugin
+# Copyright (C) 2025 SpyKeeR
+# This file is distributed under the same license as the snmptoneralerts package.
+# SpyKeeR <https://github.com/SpyKeeR>, 2025.
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: GLPI Plugin - Example\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-08 14:54+0000\n"
-"PO-Revision-Date: 2018-08-21 14:34+0000\n"
-"Last-Translator: Cédric Anne\n"
-"Language-Team: French (France) (http://www.transifex.com/teclib/glpi-plugin-example/language/fr_FR/)\n"
+"Project-Id-Version: SNMP Toner Alerts 1.0.3\n"
+"Report-Msgid-Bugs-To: https://github.com/SpyKeeR/snmptoneralerts/issues\n"
+"POT-Creation-Date: 2025-10-31 14:00+0100\n"
+"PO-Revision-Date: 2025-10-31 14:00+0100\n"
+"Last-Translator: SpyKeeR <https://github.com/SpyKeeR>\n"
+"Language-Team: French\n"
+"Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fr_FR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: config.php:48
-msgid "This is the plugin config page"
-msgstr "Ceci est la page de configuration du plugin"
+# setup.php
+msgid "SNMP Toner Alerts"
+msgstr "Alertes Toners SNMP"
 
-#: inc/dropdown.class.php:42 inc/dropdown.class.php:44
-msgid "Plugin Example Dropdowns"
-msgstr "Listes déroulantes du plugin Exemple"
+# src/Config.php
+msgid "SNMP Toner Alerts Configuration"
+msgstr "Configuration des Alertes Toners SNMP"
 
-#: inc/example.class.php:82
-msgid "Test link"
-msgstr "Lien de test"
+msgid "Threshold percentage (%)"
+msgstr "Pourcentage de seuil (%)"
 
-#: inc/example.class.php:170
-msgid "Cron description for example"
-msgstr ""
+msgid "Alert when toner level is below this percentage"
+msgstr "Alerter quand le niveau de toner est en dessous de ce pourcentage"
 
-#: inc/example.class.php:171
-msgid "Cron parameter for example"
-msgstr ""
+msgid "Email recipients"
+msgstr "Destinataires email"
 
-#: inc/example.class.php:228 inc/example.class.php:234
-#: inc/example.class.php:237 inc/notificationtargetexample.class.php:44
-msgid "Example"
-msgstr "Exemple"
+msgid "Separate multiple emails with commas"
+msgstr "Séparer plusieurs emails par des virgules"
 
-#: inc/example.class.php:241 inc/example.class.php:248
-msgid "Test Plugin"
-msgstr "Test plugin"
+msgid "Check frequency (hours)"
+msgstr "Fréquence de vérification (heures)"
 
-#: inc/example.class.php:242
-msgid "Test Plugin 2"
-msgstr "Test plugin 2"
+msgid "How often to check toner levels"
+msgstr "Fréquence de vérification des niveaux de toners"
 
-#: inc/example.class.php:260
-msgid "Plugin Example on Phone"
-msgstr "Plugin Exemple sur les Téléphones"
+msgid "Maximum daily alerts per toner"
+msgstr "Nombre maximum d'alertes quotidiennes par toner"
 
-#: inc/example.class.php:264
-msgid "Plugin central action"
-msgstr ""
+msgid "After this number, switch to weekly recap"
+msgstr "Après ce nombre, basculer sur le récapitulatif hebdomadaire"
 
-#: inc/example.class.php:287
-msgid "Plugin mailing action"
-msgstr ""
+msgid "Enable daily alerts"
+msgstr "Activer les alertes quotidiennes"
 
-#: inc/example.class.php:293
-msgid "First tab of Plugin example"
-msgstr "Premier onglet du plugin Exemple"
+msgid "Daily alert time"
+msgstr "Heure de l'alerte quotidienne"
 
-#: inc/example.class.php:295
-msgid "Second tab of Plugin example"
-msgstr "Deuxième onglet du plugin Exemple"
+msgid "Enable weekly alerts"
+msgstr "Activer les alertes hebdomadaires"
 
-#. TRANS: %1$s is a class name, %2$d is an item ID
-#: inc/example.class.php:301
-#, php-format
-msgid "Plugin example CLASS=%1$s id=%2$d"
-msgstr ""
+msgid "Weekly alert day"
+msgstr "Jour de l'alerte hebdomadaire"
 
-#: inc/example.class.php:330
-msgid "test planning example 1"
-msgstr ""
+msgid "Weekly alert time"
+msgstr "Heure de l'alerte hebdomadaire"
 
-#: inc/example.class.php:390
-msgid "History from plugin example"
-msgstr "Historique du plugin Exemple"
+msgid "Monday"
+msgstr "Lundi"
 
-#: inc/example.class.php:411
-msgid "Do Nothing - just for fun"
-msgstr "Ne fait rien - just pour le fun"
+msgid "Tuesday"
+msgstr "Mardi"
 
-#: inc/example.class.php:428 inc/example.class.php:452
-msgid "Write in item history"
-msgstr "Ecrit un élément d'historique"
+msgid "Wednesday"
+msgstr "Mercredi"
 
-#: inc/example.class.php:432
-msgid "but do nothing :)"
-msgstr "mais ne fait rien"
+msgid "Thursday"
+msgstr "Jeudi"
 
-#: inc/example.class.php:451 inc/example.class.php:473
-msgid "Right it is the type I want..."
-msgstr "Bien, c'est le type que je voulais..."
+msgid "Friday"
+msgstr "Vendredi"
 
-#: inc/example.class.php:474
-msgid "But... I say I will do nothing for:"
-msgstr "Cependant, j'ai dit que je ne ferais rien pour :"
+msgid "Saturday"
+msgstr "Samedi"
 
-#: inc/ruletest.class.php:77
-msgid "Category (class)"
-msgstr "Categorie (classe)"
+msgid "Sunday"
+msgstr "Dimanche"
 
-#: setup.php:272
-msgid "Installed / not configured"
-msgstr "Installer / non configurer"
+# src/TonerMonitor.php
+msgid "Check toner levels from SNMP"
+msgstr "Vérifier les niveaux de toners depuis SNMP"
 
-#: hook.php:60
-msgid "Plugin Example Dropdown"
-msgstr "Dropdown du plugin example"
+msgid "Send daily toner alerts"
+msgstr "Envoyer les alertes quotidiennes de toners"
 
-#: hook.php:75
-msgid "Example plugin"
-msgstr "Plugin Example"
+msgid "Send weekly toner alerts recap"
+msgstr "Envoyer le récapitulatif hebdomadaire des alertes de toners"
 
-#: hook.php:89
-msgid "Example plugin new"
-msgstr ""
+msgid "Unknown"
+msgstr "Inconnu"
 
-#: hook.php:274
-msgid "plugin_example_DoIt"
-msgstr "Effectuer l'action"
+msgid "Not defined"
+msgstr "Non défini"
 
-#: hook.php:295 hook.php:306
-msgid "Not really specific - Just for example"
-msgstr "Pas vraiment spécifique - Juste pour l'exemple"
+# src/NotificationTargetTonerAlert.php
+msgid "Daily toner alert"
+msgstr "Alerte quotidienne de toner"
 
-#: hook.php:326
-msgid "Not really specific - Use your own dropdown - Just for example"
-msgstr "Pas vraiment spécifique - Utilisez votre propre liste déroulante - Juste pour l'exemple"
+msgid "Weekly toner alert recap"
+msgstr "Récapitulatif hebdomadaire des alertes de toners"
 
-#: hook.php:348
-msgid "Pre Update Computer Hook"
-msgstr "Hook avant mise à jour d'un Ordinateur"
+msgid "Alert threshold percentage"
+msgstr "Pourcentage de seuil d'alerte"
 
-#: hook.php:354
-#, php-format
-msgid "Update Computer Hook (%s)"
-msgstr "Hook de mise à jour d'un Ordinateur (%s)"
+msgid "Number of printers in alert"
+msgstr "Nombre d'imprimantes en alerte"
 
-#: hook.php:362
-msgid "Empty Computer Hook"
-msgstr "Hook sur ordinateur vide"
+msgid "Alert type (daily/weekly)"
+msgstr "Type d'alerte (quotidienne/hebdomadaire)"
 
-#: hook.php:372
-msgid "Pre Delete Computer Hook"
-msgstr "Hook de pré-suppression d'ordinateur"
+msgid "Printer name"
+msgstr "Nom de l'imprimante"
 
-#: hook.php:378
-msgid "Delete Computer Hook"
-msgstr "Hook de suppression d'ordinateur"
+msgid "Location"
+msgstr "Localisation"
 
-#: hook.php:386
-msgid "Pre Purge Computer Hook"
-msgstr "Hook de pré-purge d'ordinateur"
+msgid "Model"
+msgstr "Modèle"
 
-#: hook.php:392
-msgid "Purge Computer Hook"
-msgstr "Hook de purge d'ordinateur"
+msgid "Toner type"
+msgstr "Type de toner"
 
-#: hook.php:400
-msgid "Pre Restore Computer Hook"
-msgstr "Hoo de pré-restauration d'ordinateur"
+msgid "Toner name"
+msgstr "Nom du toner"
 
-#: hook.php:407
-msgid "Pre Restore Phone Hook"
-msgstr "Hook de pré-restauration de téléphone"
+msgid "Current level"
+msgstr "Niveau actuel"
 
-#: hook.php:413
-msgid "Restore Computer Hook"
-msgstr "Hook de restauration de téléphone"
+msgid "Cartridge reference"
+msgstr "Référence de cartouche"
 
-#. TRANS: %1$s is the source type, %2$d is the source ID, %3$d is the
-#. destination ID
-#: hook.php:421
-#, php-format
-msgid "Transfer Computer Hook %1$s %2$d -> %3$d"
-msgstr ""
+msgid "Alert number"
+msgstr "Numéro d'alerte"
 
-#: hook.php:611
-msgid "Example event"
-msgstr "Événement exemple"
+msgid "Daily"
+msgstr "Quotidienne"
 
-#: hook.php:616
-msgid "Example datas"
-msgstr "Données d'exemple"
+msgid "Weekly"
+msgstr "Hebdomadaire"
 
-#: hook.php:673 hook.php:686
-msgid "Plugin example displays on central page"
-msgstr "Affichage sur la page centrale depuis le plugin exemple"
+#, c-format
+msgid "Alert %d/%d"
+msgstr "Alerte %d/%d"
 
-#: hook.php:680
-msgid "Plugin example displays on login page"
-msgstr "Affichage sur la page de connexion depuis le plugin exemple"
+#, c-format
+msgid "Persistent since %s"
+msgstr "Persistante depuis %s"
+
+msgid "Ref"
+msgstr "Réf"
+
+msgid "Black toner"
+msgstr "Toner noir"
+
+msgid "Cyan toner"
+msgstr "Toner cyan"
+
+msgid "Magenta toner"
+msgstr "Toner magenta"
+
+msgid "Yellow toner"
+msgstr "Toner jaune"
+
+msgid "Black drum"
+msgstr "Tambour noir"
+
+msgid "Cyan drum"
+msgstr "Tambour cyan"
+
+msgid "Magenta drum"
+msgstr "Tambour magenta"
+
+msgid "Yellow drum"
+msgstr "Tambour jaune"
