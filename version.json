@@ -1,0 +1,46 @@
+﻿{
+  "version": "1.0.2",
+  "date": "2025-10-31",
+  "compatibility": {
+    "glpi": {
+      "min": "11.0.0",
+      "max": "11.0.99"
+    },
+    "php": {
+      "min": "8.2"
+    }
+  },
+  "author": "SpyKeeR",
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://github.com/SpyKeeR/snmptoneralerts",
+  "changelog": {
+    "1.0.2": {
+      "date": "2025-10-31",
+      "changes": [
+        "Updated author to SpyKeeR",
+        "Changed license to GPLv3+",
+        "Added French localization",
+        "Added complete documentation",
+        "Updated repository links"
+      ]
+    },
+    "1.0.1": {
+      "date": "2025-10-31",
+      "changes": [
+        "Bug fixes and improvements",
+        "Code optimization"
+      ]
+    },
+    "1.0.0": {
+      "date": "2025-10-31",
+      "changes": [
+        "Initial release",
+        "SNMP toner monitoring",
+        "Progressive alert system",
+        "Email notifications",
+        "Configuration interface",
+        "Printer exclusion management"
+      ]
+    }
+  }
+}

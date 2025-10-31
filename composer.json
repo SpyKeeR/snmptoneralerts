@@ -1,0 +1,37 @@
+{
+    "name": "spykeer/snmptoneralerts",
+    "description": "SNMP Toner Alerts plugin for GLPI - Monitor printer toner levels from SNMP inventory",
+    "type": "glpi-plugin",
+    "license": "GPL-3.0-or-later",
+    "homepage": "https://github.com/SpyKeeR/snmptoneralerts",
+    "keywords": ["glpi", "plugin", "snmp", "toner", "alerts", "printer", "monitoring"],
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "glpi-project/tools": "^0.8"
+    },
+    "authors": [
+        {
+            "name": "SpyKeeR",
+            "homepage": "https://github.com/SpyKeeR"
+        }
+    ],
+    "config": {
+        "optimize-autoloader": true,
+        "platform": {
+            "php": "8.2.99"
+        },
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "GlpiPlugin\\Snmptoneralerts\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Glpi\\Tools\\": "../../tools/src/"
+        }
+    }
+}
