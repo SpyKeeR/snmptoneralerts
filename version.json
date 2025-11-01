@@ -1,5 +1,5 @@
 ﻿{
-  "version": "1.1.1",
+  "version": "1.1.2",
   "release_date": "2025-11-01",
   "glpi_min_version": "11.0.0",
   "glpi_max_version": "11.0.99",
@@ -10,6 +10,18 @@
   "description": "Plugin GLPI pour la surveillance automatique des niveaux de toners via SNMP avec système d'alertes progressives",
   "tags": ["snmp", "toner", "alerts", "monitoring", "printer", "netinventory"],
   "changes": [
+    {
+      "type": "improvement",
+      "description": "Implémentation des créneaux horaires (hourmin/hourmax) pour les CronTasks SendDailyAlerts (6h-8h) et SendWeeklyRecap (12h-14h)"
+    },
+    {
+      "type": "documentation",
+      "description": "Documentation complète des créneaux horaires dans README.md et INSTALL.md avec instructions pour choisir le jour d'exécution hebdomadaire"
+    },
+    {
+      "type": "improvement",
+      "description": "Configuration crontab système maintenant optionnelle grâce aux créneaux horaires GLPI natifs"
+    },
     {
       "type": "feature",
       "description": "Interface complète de gestion des exclusions d'imprimantes directement dans la page de configuration"

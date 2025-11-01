@@ -404,15 +404,17 @@ WHERE p.id = 42;  -- Remplacer par l'ID de votre imprimante
 
 ### Vue d'ensemble des CronTasks
 
-Le plugin utilise **3 tâches automatiques** qui sont **activées par défaut** lors de l'installation :
+Le plugin utilise **3 tâches automatiques** qui sont **activées par défaut** lors de l'installation avec **créneaux horaires optimisés** :
 
-| CronTask | Rôle | État initial | Fréquence par défaut | Horaire recommandé |
-|----------|------|--------------|---------------------|-------------------|
-| **CheckTonerLevels** | Vérifie les niveaux SNMP et met à jour les états/compteurs | ✅ Actif | Toutes les 6h (21600s) | 00:00, 06:00, 12:00, 18:00 |
-| **SendDailyAlerts** | Envoie alertes pour toners avec compteur ≤ 3 | ✅ Actif | Quotidien (86400s) | 08:00 |
-| **SendWeeklyRecap** | Envoie récap pour toners avec compteur > 3 | ✅ Actif | Hebdomadaire (604800s) | Vendredi 12:00 |
+| CronTask | Rôle | État initial | Fréquence | Créneau horaire |
+|----------|------|--------------|-----------|-----------------|
+| **CheckTonerLevels** | Vérifie les niveaux SNMP et met à jour les états/compteurs | ✅ Actif | Toutes les 6h | Aucun |
+| **SendDailyAlerts** | Envoie alertes pour toners avec compteur ≤ 3 | ✅ Actif | Quotidien (24h) | **06h00-08h00** |
+| **SendWeeklyRecap** | Envoie récap pour toners avec compteur > 3 | ✅ Actif | Hebdomadaire (7j) | **12h00-14h00** |
 
-> **💡 Nouveauté v1.1.0** : Les CronTasks sont maintenant activés automatiquement à l'installation. Vous n'avez plus besoin de les activer manuellement, seulement de les configurer si vous souhaitez modifier les horaires.
+> **💡 Nouveauté v1.1.2** : Les CronTasks utilisent maintenant des **créneaux horaires** pour garantir des envois à des heures cohérentes :
+> - **Daily** : S'exécute automatiquement tous les jours entre 6h et 8h
+> - **Weekly** : S'exécute automatiquement toutes les semaines entre 12h et 14h
 
 ### Configuration dans GLPI (optionnelle)
 
@@ -429,6 +431,7 @@ Les CronTasks fonctionnent immédiatement avec les paramètres par défaut. Si v
 - **État** : ✅ Actif (par défaut)
 - **Mode d'exécution** : CLI (recommandé) ou GLPI
 - **Fréquence** : `21600` secondes (6h) - Ajustable selon vos besoins
+- **Créneau horaire** : Aucun (s'exécute toutes les 6h sans restriction)
 - **État de l'exécution** : À planifier
 
 💡 **Recommandation** : Conserver 6h pour un bon équilibre entre réactivité et charge serveur.
@@ -438,54 +441,78 @@ Les CronTasks fonctionnent immédiatement avec les paramètres par défaut. Si v
 - **État** : ✅ Actif (par défaut)
 - **Mode d'exécution** : CLI (via cron système recommandé)
 - **Fréquence** : `86400` secondes (24h)
+- **Créneau horaire** : **Heure minimum** = `6`, **Heure maximum** = `8`
 - **État de l'exécution** : À planifier
 
-💡 **Recommandation** : Configurer un horaire précis via crontab (ex: 08:00) pour garantir l'envoi à heure fixe.
+💡 **Recommandation v1.1.2** : Le créneau 6h-8h garantit un envoi matinal automatique. La tâche s'exécutera naturellement dans cette plage horaire sans configuration crontab.
 
 #### SendWeeklyRecap
 
 - **État** : ✅ Actif (par défaut)
 - **Mode d'exécution** : CLI (via cron système recommandé)
 - **Fréquence** : `604800` secondes (7 jours)
+- **Créneau horaire** : **Heure minimum** = `12`, **Heure maximum** = `14`
 - **État de l'exécution** : À planifier
 
-💡 **Recommandation** : Configurer via crontab pour envoi le vendredi à 12:00.
+💡 **Recommandation v1.1.2** : Le créneau 12h-14h garantit un envoi en milieu de journée.
 
-### Configuration Cron système (recommandé)
+🔧 **Choisir le jour d'exécution hebdomadaire** (ex: vendredi) :
+- Exécuter manuellement la tâche **un vendredi** (bouton "Exécuter" dans GLPI)
+- GLPI enregistrera ce jour comme point de départ
+- Les prochaines exécutions se feront automatiquement **7 jours après** (donc le vendredi suivant entre 12h et 14h)
+- Cette méthode permet de choisir le jour souhaité sans modifier le code
 
-Pour une exécution **précise et fiable**, utiliser le crontab système.
+### Configuration Cron système (optionnelle depuis v1.1.2)
 
-**Éditer le crontab** :
+> **💡 Nouveauté v1.1.2** : Grâce aux créneaux horaires (`hourmin`/`hourmax`), les tâches s'exécutent automatiquement aux bonnes heures via le cron GLPI natif. **La configuration crontab système est maintenant optionnelle**.
+
+#### Option 1 : Utiliser le cron GLPI natif (recommandé)
+
+Le cron GLPI doit être configuré pour s'exécuter fréquemment (toutes les minutes) :
 
 ```bash
 # En tant que root ou avec sudo
 crontab -e
 ```
 
-**Ajouter les lignes suivantes** :
+**Ajouter cette ligne unique** :
+
+```bash
+# Exécution du cron GLPI (toutes les minutes)
+* * * * * /usr/bin/php /var/www/html/glpi/front/cron.php >> /var/log/glpi/cron.log 2>&1
+```
+
+GLPI gérera automatiquement l'exécution des tâches en respectant :
+- Les fréquences configurées (6h, 24h, 7j)
+- Les créneaux horaires (6h-8h pour Daily, 12h-14h pour Weekly)
+- Les dernières dates d'exécution
+
+#### Option 2 : Forcer des horaires précis (crontab dédié)
+
+Si vous préférez contrôler les horaires exacts via crontab :
 
 ```bash
 # SNMP Toner Alerts - Vérification des niveaux toutes les 6 heures
 0 */6 * * * /usr/bin/php /var/www/html/glpi/front/cron.php --force CheckTonerLevels >> /var/log/glpi/cron.log 2>&1
 
-# SNMP Toner Alerts - Alertes journalières à 8h00
-0 8 * * * /usr/bin/php /var/www/html/glpi/front/cron.php --force SendDailyAlerts >> /var/log/glpi/cron.log 2>&1
+# SNMP Toner Alerts - Alertes journalières à 7h00 (dans le créneau 6h-8h)
+0 7 * * * /usr/bin/php /var/www/html/glpi/front/cron.php --force SendDailyAlerts >> /var/log/glpi/cron.log 2>&1
 
-# SNMP Toner Alerts - Récapitulatif hebdomadaire vendredi à 12h00
-0 12 * * 5 /usr/bin/php /var/www/html/glpi/front/cron.php --force SendWeeklyRecap >> /var/log/glpi/cron.log 2>&1
+# SNMP Toner Alerts - Récapitulatif hebdomadaire vendredi à 13h00 (dans le créneau 12h-14h)
+0 13 * * 5 /usr/bin/php /var/www/html/glpi/front/cron.php --force SendWeeklyRecap >> /var/log/glpi/cron.log 2>&1
 ```
 
-**Variantes** :
+**Variantes avancées** :
 
 ```bash
 # Avec le binaire GLPI CLI (si disponible)
 0 */6 * * * /usr/bin/php /var/www/html/glpi/bin/console glpi:cron:task CheckTonerLevels
 
 # Avec authentification utilisateur spécifique
-0 8 * * * /usr/bin/php /var/www/html/glpi/front/cron.php --force SendDailyAlerts --uid=2
+0 7 * * * /usr/bin/php /var/www/html/glpi/front/cron.php --force SendDailyAlerts --uid=2
 
 # Avec verbosité pour debug
-0 12 * * 5 /usr/bin/php /var/www/html/glpi/front/cron.php --force SendWeeklyRecap -vvv
+0 13 * * 5 /usr/bin/php /var/www/html/glpi/front/cron.php --force SendWeeklyRecap -vvv
 ```
 
 **Vérifier le crontab** :

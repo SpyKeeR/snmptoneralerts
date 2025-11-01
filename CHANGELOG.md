@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2025-11-01
+
+### 🎯 Améliorations
+
+#### Créneaux horaires pour CronTasks
+- **Implémentation native GLPI** : Utilisation des champs `hourmin` et `hourmax` pour planifier les envois
+  - **SendDailyAlerts** : Créneau 06h00-08h00 (envoi matinal automatique)
+  - **SendWeeklyRecap** : Créneau 12h00-14h00 (envoi en milieu de journée)
+  - **CheckTonerLevels** : Aucun créneau (exécution libre toutes les 6h)
+- **Flexibilité du jour hebdomadaire** : Possibilité de choisir le jour d'exécution (ex: vendredi) en exécutant manuellement la tâche le jour souhaité
+- **Configuration crontab optionnelle** : Le cron GLPI natif (exécuté toutes les minutes) suffit désormais pour gérer les créneaux horaires
+
+### 📖 Documentation
+
+#### Guide complet des créneaux horaires
+- **README.md** : Tableau des CronTasks mis à jour avec colonne "Créneau horaire" et instructions pour choisir le jour hebdomadaire
+- **INSTALL.md** : Documentation détaillée de la configuration des créneaux horaires dans GLPI
+  - Vue d'ensemble avec les créneaux pour chaque tâche
+  - Configuration GLPI avec champs `hourmin`/`hourmax` explicités
+  - Explication de la stratégie d'exécution manuelle pour ancrer le jour hebdomadaire
+  - Section crontab système actualisée (maintenant optionnelle)
+  - Exemples mis à jour avec horaires dans les créneaux (7h pour Daily, 13h pour Weekly)
+
 ## [1.1.1] - 2025-11-01
 
 ### ✨ Nouvelles fonctionnalités

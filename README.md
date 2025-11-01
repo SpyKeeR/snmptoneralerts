@@ -5,7 +5,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![GLPI](https://img.shields.io/badge/GLPI-≥11.0-green.svg)](https://glpi-project.org/)
 [![PHP](https://img.shields.io/badge/PHP-≥8.2-777BB4.svg)](https://www.php.net/)
-[![Version](https://img.shields.io/badge/version-1.1.1-orange.svg)](https://github.com/SpyKeeR/snmptoneralerts/releases)
+[![Version](https://img.shields.io/badge/version-1.1.2-orange.svg)](https://github.com/SpyKeeR/snmptoneralerts/releases)
 
 **Plugin GLPI pour la surveillance automatique des niveaux de toners via SNMP**
 
@@ -141,7 +141,7 @@ SELECT COUNT(*) FROM glpi_printers_cartridgeinfos;
 
 ## ⚙️ Configuration de base
 
-### 1. Gestion des exclusions (v1.1.1)
+### 1. Gestion des exclusions (v1.1.2)
 
 **Configuration** → **Configuration** → **Onglet "Alertes toners SNMP"** → Section **Gestion des imprimantes exclues**
 
@@ -179,18 +179,23 @@ Rechercher **"SNMP Toner Alert - Daily"** et **"SNMP Toner Alert - Weekly"** :
 
 **Configuration** → **Actions automatiques**
 
-| CronTask | Fréquence | Activation | Rôle |
-|----------|-----------|------------|------|
-| **CheckTonerLevels** | 6h | ✅ Auto | Vérifie les niveaux de toners |
-| **SendDailyAlerts** | Quotidien | ✅ Auto | Envoie alertes (compteur ≤3) |
-| **SendWeeklyRecap** | Hebdomadaire | ✅ Auto | Envoie récaps (compteur >3) |
+| CronTask | Fréquence | Créneau horaire | Activation | Rôle |
+|----------|-----------|-----------------|------------|------|
+| **CheckTonerLevels** | 6h | Aucun | ✅ Auto | Vérifie les niveaux de toners |
+| **SendDailyAlerts** | Quotidien | 06h00-08h00 | ✅ Auto | Envoie alertes (compteur ≤3) |
+| **SendWeeklyRecap** | Hebdomadaire | 12h00-14h00 | ✅ Auto | Envoie récaps (compteur >3) |
 
-> ℹ️ Les CronTasks sont **activés par défaut** lors de l'installation
+> ℹ️ Les CronTasks sont **activés par défaut** lors de l'installation avec créneaux horaires optimisés
 
-**Pour personnaliser les horaires** :
-- Cliquer sur la CronTask
-- Modifier la fréquence d'exécution
-- Pour horaires précis (ex: 08h00), configurer un cron système (voir [INSTALL.md](INSTALL.md))
+**Créneaux horaires (v1.1.2)** :
+- **Daily** : S'exécute tous les jours entre **6h et 8h** du matin
+- **Weekly** : S'exécute toutes les semaines entre **12h et 14h**
+  - 💡 Pour choisir le jour (ex: vendredi) : Exécuter manuellement la tâche le jour souhaité, puis GLPI respectera la périodicité de 7 jours
+
+**Pour personnaliser** :
+- Modifier les champs `Heure min` et `Heure max` dans la configuration de la CronTask
+- Ajuster la `Fréquence d'exécution` selon vos besoins
+- Pour un contrôle total, utiliser un cron système (voir [INSTALL.md](INSTALL.md))
 
 ### 4. Personnalisation des templates
 

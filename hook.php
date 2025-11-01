@@ -141,20 +141,30 @@ function plugin_snmptoneralerts_install()
         ['state' => CronTask::STATE_WAITING, 'mode' => CronTask::MODE_EXTERNAL]
     );
 
-    // Send daily alerts once per day at 8:00 AM
+    // Send daily alerts once per day between 6:00 AM and 8:00 AM
     CronTask::Register(
         TonerMonitor::class,
         'SendDailyAlerts',
         DAY_TIMESTAMP,
-        ['state' => CronTask::STATE_WAITING, 'mode' => CronTask::MODE_EXTERNAL]
+        [
+            'state' => CronTask::STATE_WAITING,
+            'mode' => CronTask::MODE_EXTERNAL,
+            'hourmin' => 6,
+            'hourmax' => 8
+        ]
     );
 
-    // Send weekly recap once per week on Friday at noon
+    // Send weekly recap once per week between 12:00 PM and 2:00 PM
     CronTask::Register(
         TonerMonitor::class,
         'SendWeeklyRecap',
         WEEK_TIMESTAMP,
-        ['state' => CronTask::STATE_WAITING, 'mode' => CronTask::MODE_EXTERNAL]
+        [
+            'state' => CronTask::STATE_WAITING,
+            'mode' => CronTask::MODE_EXTERNAL,
+            'hourmin' => 12,
+            'hourmax' => 14
+        ]
     );
 
     // Create notification templates and notifications
