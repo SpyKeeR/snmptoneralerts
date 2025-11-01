@@ -48,7 +48,7 @@ class Config extends CommonDBTM
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
     {
         if (!$withtemplate && $item->getType() == 'Config') {
-            return __('SNMP Toner Alerts', 'snmptoneralerts');
+            return "<span class='d-flex align-items-center'><i class='ti ti-printer me-2'></i>" . __('Alertes toners SNMP', 'snmptoneralerts') . "</span>";
         }
 
         return '';
@@ -68,14 +68,7 @@ class Config extends CommonDBTM
     {
         return [
             'threshold_percentage'     => 20,
-            'email_recipients'         => '',
-            'check_frequency_hours'    => 6,
-            'alert_time_daily'         => '08:00:00',
-            'alert_day_weekly'         => 5, // Friday
-            'alert_time_weekly'        => '12:00:00',
             'max_daily_alerts'         => 3,
-            'enable_daily_alerts'      => 1,
-            'enable_weekly_alerts'     => 1,
         ];
     }
 
@@ -86,7 +79,7 @@ class Config extends CommonDBTM
      */
     public static function getConfig()
     {
-        $config = GlpiConfig::getConfigurationValues('plugin:Snmptoneralerts');
+        $config = GlpiConfig::getConfigurationValues('snmptoneralerts');
         $defaults = self::getDefaults();
         
         return array_merge($defaults, $config);
@@ -112,7 +105,7 @@ class Config extends CommonDBTM
         echo "<tr><th colspan='2'>" . __('SNMP Toner Alerts Configuration', 'snmptoneralerts') . '</th></tr>';
 
         echo "<input type='hidden' name='config_class' value='" . self::class . "'>";
-        echo "<input type='hidden' name='config_context' value='plugin:Snmptoneralerts'>";
+        echo "<input type='hidden' name='config_context' value='snmptoneralerts'>";
 
         // Threshold percentage
         echo "<tr class='tab_bg_1'>";
@@ -120,22 +113,6 @@ class Config extends CommonDBTM
         echo "<td>";
         echo "<input type='number' name='threshold_percentage' value='" . $config['threshold_percentage'] . "' min='1' max='100' style='width: 100px;'>";
         echo " " . __('Alert when toner level is below this percentage', 'snmptoneralerts');
-        echo '</td></tr>';
-
-        // Email recipients
-        echo "<tr class='tab_bg_1'>";
-        echo "<td>" . __('Email recipients', 'snmptoneralerts') . '</td>';
-        echo "<td>";
-        echo "<input type='text' name='email_recipients' value='" . $config['email_recipients'] . "' style='width: 500px;'>";
-        echo "<br><small>" . __('Separate multiple emails with commas', 'snmptoneralerts') . "</small>";
-        echo '</td></tr>';
-
-        // Check frequency
-        echo "<tr class='tab_bg_1'>";
-        echo "<td>" . __('Check frequency (hours)', 'snmptoneralerts') . '</td>';
-        echo "<td>";
-        echo "<input type='number' name='check_frequency_hours' value='" . $config['check_frequency_hours'] . "' min='1' max='24' style='width: 100px;'>";
-        echo " " . __('How often to check toner levels', 'snmptoneralerts');
         echo '</td></tr>';
 
         // Max daily alerts
@@ -146,48 +123,39 @@ class Config extends CommonDBTM
         echo " " . __('After this number, switch to weekly recap', 'snmptoneralerts');
         echo '</td></tr>';
 
-        // Enable daily alerts
+        // Quick links section
         echo "<tr class='tab_bg_1'>";
-        echo "<td>" . __('Enable daily alerts', 'snmptoneralerts') . '</td>';
-        echo "<td>";
-        Dropdown::showYesNo('enable_daily_alerts', $config['enable_daily_alerts']);
-        echo '</td></tr>';
-
-        // Daily alert time
-        echo "<tr class='tab_bg_1'>";
-        echo "<td>" . __('Daily alert time', 'snmptoneralerts') . '</td>';
-        echo "<td>";
-        echo "<input type='time' name='alert_time_daily' value='" . substr($config['alert_time_daily'], 0, 5) . "' style='width: 120px;'>";
-        echo '</td></tr>';
-
-        // Enable weekly alerts
-        echo "<tr class='tab_bg_1'>";
-        echo "<td>" . __('Enable weekly alerts', 'snmptoneralerts') . '</td>';
-        echo "<td>";
-        Dropdown::showYesNo('enable_weekly_alerts', $config['enable_weekly_alerts']);
-        echo '</td></tr>';
-
-        // Weekly alert day
-        echo "<tr class='tab_bg_1'>";
-        echo "<td>" . __('Weekly alert day', 'snmptoneralerts') . '</td>';
-        echo "<td>";
-        $days = [
-            1 => __('Monday'),
-            2 => __('Tuesday'),
-            3 => __('Wednesday'),
-            4 => __('Thursday'),
-            5 => __('Friday'),
-            6 => __('Saturday'),
-            0 => __('Sunday'),
-        ];
-        Dropdown::showFromArray('alert_day_weekly', $days, ['value' => $config['alert_day_weekly']]);
-        echo '</td></tr>';
-
-        // Weekly alert time
-        echo "<tr class='tab_bg_1'>";
-        echo "<td>" . __('Weekly alert time', 'snmptoneralerts') . '</td>';
-        echo "<td>";
-        echo "<input type='time' name='alert_time_weekly' value='" . substr($config['alert_time_weekly'], 0, 5) . "' style='width: 120px;'>";
+        echo "<td colspan='2' class='center'>";
+        echo "<div style='padding: 15px; background: #f8f9fa; border-radius: 5px;'>";
+        echo "<strong><i class='ti ti-link me-2'></i>" . __('Quick Configuration Links', 'snmptoneralerts') . "</strong>";
+        echo "<div style='margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;'>";
+        
+        // Link to notifications
+        echo "<a href='" . $CFG_GLPI['root_doc'] . "/front/notification.php' class='btn btn-sm btn-primary' target='_blank'>";
+        echo "<i class='ti ti-bell me-1'></i>";
+        echo __('Email Recipients', 'snmptoneralerts');
+        echo "</a>";
+        
+        // Link to cron tasks
+        echo "<a href='" . $CFG_GLPI['root_doc'] . "/front/crontask.php' class='btn btn-sm btn-primary' target='_blank'>";
+        echo "<i class='ti ti-clock me-1'></i>";
+        echo __('Scheduling & Frequency', 'snmptoneralerts');
+        echo "</a>";
+        
+        // Link to notification templates
+        echo "<a href='" . $CFG_GLPI['root_doc'] . "/front/notificationtemplate.php' class='btn btn-sm btn-primary' target='_blank'>";
+        echo "<i class='ti ti-mail me-1'></i>";
+        echo __('Email Templates', 'snmptoneralerts');
+        echo "</a>";
+        
+        echo "</div>";
+        echo "<div style='margin-top: 10px;'>";
+        echo "<small class='text-muted'>";
+        echo __('Recipients: Search "SNMP Toner Alert" in Notifications', 'snmptoneralerts') . " | ";
+        echo __('Frequency: Edit "CheckTonerLevels", "SendDailyAlerts", "SendWeeklyRecap" tasks', 'snmptoneralerts');
+        echo "</small>";
+        echo "</div>";
+        echo "</div>";
         echo '</td></tr>';
 
         echo "<tr class='tab_bg_2'>";

@@ -34,11 +34,12 @@ use NotificationTarget;
 
 /**
  * Notification target for toner alerts
+ * Similar to NotificationTargetExample in example plugin
  */
 class NotificationTargetTonerAlert extends NotificationTarget
 {
     /**
-     * Get notification events
+     * Get notification events for TonerAlert itemtype
      *
      * @return array
      */
@@ -48,6 +49,24 @@ class NotificationTargetTonerAlert extends NotificationTarget
             'toner_alert_daily'  => __('Daily toner alert', 'snmptoneralerts'),
             'toner_alert_weekly' => __('Weekly toner alert recap', 'snmptoneralerts'),
         ];
+    }
+
+    /**
+     * Override getMessageID to generate RFC-compliant Message-ID
+     * Replaces backslashes with dots to avoid issues with email headers
+     *
+     * @return string
+     */
+    public function getMessageID()
+    {
+        // Get the standard Message-ID from parent
+        $message_id = parent::getMessageID();
+        
+        // Replace backslashes with dots for RFC compliance
+        // This converts 'GlpiPlugin\Snmptoneralerts\TonerAlert' to 'GlpiPlugin.Snmptoneralerts.TonerAlert'
+        $message_id = str_replace('\\', '.', $message_id);
+        
+        return $message_id;
     }
 
     /**
@@ -88,12 +107,13 @@ class NotificationTargetTonerAlert extends NotificationTarget
     }
 
     /**
-     * Get data for notification
+     * Add specific data for notification
      *
+     * @param string $event
      * @param array $options
      * @return void
      */
-    public function getDatasForTemplate($event, $options = [])
+    public function addDataForTemplate($event, $options = [])
     {
         global $CFG_GLPI;
 
@@ -103,7 +123,7 @@ class NotificationTargetTonerAlert extends NotificationTarget
         $config = Config::getConfig();
         
         // Global tags
-        $this->data['##toner.threshold##'] = $config['threshold_percentage'] . '%';
+        $this->data['##toner.threshold##'] = $config['threshold_percentage'];
         $this->data['##toner.alert_type##'] = $event == 'toner_alert_daily' ? 
             __('Daily', 'snmptoneralerts') : __('Weekly', 'snmptoneralerts');
 
@@ -120,7 +140,7 @@ class NotificationTargetTonerAlert extends NotificationTarget
 
             foreach ($printer_info['toners'] as $toner) {
                 $property_label = self::getPropertyLabel($toner['property']);
-                $reference = TonerMonitor::getCartridgeReference(
+                $cartridge_info = TonerMonitor::getCartridgeReference(
                     $printer_info['printer_model_id'] ?? 0,
                     $toner['property']
                 );
@@ -129,8 +149,14 @@ class NotificationTargetTonerAlert extends NotificationTarget
                     sprintf(__('Alert %d/%d', 'snmptoneralerts'), $toner['alert_count'] + 1, $config['max_daily_alerts']) :
                     sprintf(__('Persistent since %s', 'snmptoneralerts'), $toner['first_alert'] ?? '');
 
+                // Build cartridge description: Name (Ref: XXX) or just Name if no ref
+                $cartridge_desc = $cartridge_info['name'];
+                if (!empty($cartridge_info['ref'])) {
+                    $cartridge_desc .= ' (' . __('Ref', 'snmptoneralerts') . ': ' . $cartridge_info['ref'] . ')';
+                }
+
                 $printers_list .= "  - " . $property_label . ": " . $toner['value'] . "% ";
-                $printers_list .= "(" . __('Ref', 'snmptoneralerts') . ": " . $reference . ") ";
+                $printers_list .= "(" . $cartridge_desc . ") ";
                 $printers_list .= "[" . $alert_info . "]\n";
             }
             $printers_list .= "\n";

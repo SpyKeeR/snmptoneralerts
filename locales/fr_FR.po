@@ -21,6 +21,10 @@ msgstr ""
 msgid "SNMP Toner Alerts"
 msgstr "Alertes Toners SNMP"
 
+# src/Config.php - Tab name
+msgid "Alertes toners SNMP"
+msgstr "Alertes toners SNMP"
+
 # src/Config.php
 msgid "SNMP Toner Alerts Configuration"
 msgstr "Configuration des Alertes Toners SNMP"
@@ -58,11 +62,56 @@ msgstr "Heure de l'alerte quotidienne"
 msgid "Enable weekly alerts"
 msgstr "Activer les alertes hebdomadaires"
 
+msgid "Controls if daily alert emails are sent. To change frequency or timing, use Automatic Actions link above."
+msgstr "Contrôle si les emails d'alerte quotidiens sont envoyés. Pour changer la fréquence ou l'horaire, utilisez le lien Actions automatiques ci-dessus."
+
+msgid "Controls if weekly recap emails are sent. To change frequency or timing, use Automatic Actions link above."
+msgstr "Contrôle si les emails de récapitulatif hebdomadaire sont envoyés. Pour changer la fréquence ou l'horaire, utilisez le lien Actions automatiques ci-dessus."
+
+msgid "Quick Configuration Links"
+msgstr "Liens de Configuration Rapide"
+
+msgid "Email Recipients"
+msgstr "Destinataires Email"
+
+msgid "Scheduling & Frequency"
+msgstr "Planification & Fréquence"
+
+msgid "Email Templates"
+msgstr "Modèles d'Email"
+
+msgid "Recipients: Search \"SNMP Toner Alert\" in Notifications"
+msgstr "Destinataires : Recherchez \"SNMP Toner Alert\" dans Notifications"
+
+msgid "Frequency: Edit \"CheckTonerLevels\", \"SendDailyAlerts\", \"SendWeeklyRecap\" tasks"
+msgstr "Fréquence : Modifiez les tâches \"CheckTonerLevels\", \"SendDailyAlerts\", \"SendWeeklyRecap\""
+
 msgid "Weekly alert day"
 msgstr "Jour de l'alerte hebdomadaire"
 
 msgid "Weekly alert time"
 msgstr "Heure de l'alerte hebdomadaire"
+
+msgid "To configure email recipients, go to:"
+msgstr "Pour configurer les destinataires email, rendez-vous sur :"
+
+msgid "Configuration > Notifications > Notifications"
+msgstr "Configuration > Notifications > Notifications"
+
+msgid "Look for \"SNMP Toner Alert - Daily\" and \"SNMP Toner Alert - Weekly\" to add recipients (users, groups, profiles)"
+msgstr "Recherchez \"SNMP Toner Alert - Daily\" et \"SNMP Toner Alert - Weekly\" pour ajouter des destinataires (utilisateurs, groupes, profils)"
+
+msgid "Alert scheduling:"
+msgstr "Planification des alertes :"
+
+msgid "Alert times are managed by GLPI Automatic Actions (CronTasks)."
+msgstr "Les horaires d'alertes sont gérés par les Actions automatiques GLPI (CronTasks)."
+
+msgid "For precise scheduling (e.g., daily at 8:00 AM), configure system cron jobs as documented in INSTALL.md"
+msgstr "Pour une planification précise (ex: quotidien à 8h00), configurez des tâches cron système comme documenté dans INSTALL.md"
+
+msgid "Configuration > Automatic actions"
+msgstr "Configuration > Actions automatiques"
 
 msgid "Monday"
 msgstr "Lundi"

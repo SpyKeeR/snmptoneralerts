@@ -1,6 +1,6 @@
 ﻿{
-  "version": "1.0.3",
-  "release_date": "2025-10-31",
+  "version": "1.1.0",
+  "release_date": "2025-11-01",
   "glpi_min_version": "11.0.0",
   "glpi_max_version": "11.0.99",
   "php_min_version": "8.2",
@@ -11,16 +11,56 @@
   "tags": ["snmp", "toner", "alerts", "monitoring", "printer", "netinventory"],
   "changes": [
     {
-      "type": "improvement",
-      "description": "Ajout des fichiers de localisation complète (fr_FR.po, fr_FR.mo, snmptoneralerts.pot)"
+      "type": "breaking",
+      "description": "Architecture des notifications basée sur TonerAlert (itemtype personnalisé) pour meilleure conformité avec GLPI"
+    },
+    {
+      "type": "feature",
+      "description": "Message-ID RFC-compliant : remplacement des backslashes par des points (GlpiPlugin.Snmptoneralerts.TonerAlert)"
+    },
+    {
+      "type": "feature",
+      "description": "Affichage des noms de cartouches + références dans les notifications (ex: HP 305A (Ref: CE410A))"
+    },
+    {
+      "type": "feature",
+      "description": "Support des cartouches tri-color : fallback automatique si couleur spécifique non trouvée"
     },
     {
       "type": "improvement",
-      "description": "Suppression des fichiers dropdown inutiles (restes du plugin exemple)"
+      "description": "Interface de configuration simplifiée avec liens directs vers Notifications, Actions automatiques et Templates GLPI"
     },
     {
-      "type": "documentation",
-      "description": "Documentation complète du système de gabarits de mail"
+      "type": "improvement",
+      "description": "Suppression des champs redondants (enable_daily_alerts, enable_weekly_alerts, check_frequency_hours)"
+    },
+    {
+      "type": "improvement",
+      "description": "Contrôle d'activation uniquement via Actions automatiques GLPI (plus de confusion)"
+    },
+    {
+      "type": "improvement",
+      "description": "Affichage correct du nombre d'imprimantes dans les logs (11 au lieu de 1)"
+    },
+    {
+      "type": "improvement",
+      "description": "Correction du double pourcentage dans les notifications (20% au lieu de 20%%)"
+    },
+    {
+      "type": "improvement",
+      "description": "Désinstallation propre : nettoyage complet de glpi_configs, notifications et templates"
+    },
+    {
+      "type": "improvement",
+      "description": "Actions automatiques activées par défaut lors de l'installation"
+    },
+    {
+      "type": "fix",
+      "description": "Correction de la liaison templates/notifications lors de l'installation (utilisation correcte de getFromDBByCrit)"
+    },
+    {
+      "type": "fix",
+      "description": "Ajout de printer_model_id aux données d'alerte pour permettre la recherche des références de cartouches"
     },
     {
       "type": "feature",

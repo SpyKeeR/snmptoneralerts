@@ -40,6 +40,44 @@ use QueuedNotification;
  */
 class TonerMonitor extends CommonDBTM
 {
+    protected static $notable = true;
+
+    /**
+     * Return the localized name of the current Type
+     *
+     * @return string
+     */
+    public static function getTypeName($nb = 0)
+    {
+        return __('SNMP Toner Alerts', 'snmptoneralerts');
+    }
+
+    /**
+     * Get search options for the itemtype
+     *
+     * @return array
+     */
+    public function rawSearchOptions()
+    {
+        $tab = [];
+
+        $tab[] = [
+            'id'   => 'common',
+            'name' => self::getTypeName()
+        ];
+
+        $tab[] = [
+            'id'            => '1',
+            'table'         => 'glpi_plugin_snmptoneralerts_states',
+            'field'         => 'id',
+            'name'          => __('ID'),
+            'datatype'      => 'itemlink',
+            'massiveaction' => false
+        ];
+
+        return $tab;
+    }
+
     /**
      * Get cron task information
      *
@@ -87,24 +125,41 @@ class TonerMonitor extends CommonDBTM
         $cleared = 0;
 
         // Get all non-excluded printers with cartridge info
-        $query = "SELECT pci.id as cartridgeinfo_id, 
-                         pci.printers_id,
-                         pci.property,
-                         pci.value,
-                         p.name as printer_name,
-                         p.locations_id,
-                         p.printermodels_id
-                  FROM glpi_printers_cartridgeinfos as pci
-                  INNER JOIN glpi_printers as p ON p.id = pci.printers_id
-                  LEFT JOIN glpi_plugin_snmptoneralerts_excludedprinters as ep 
-                      ON ep.printers_id = p.id
-                  WHERE ep.id IS NULL
-                    AND p.is_deleted = 0
-                    AND pci.property IN ('tonerblack', 'tonercyan', 'tonermagenta', 'toneryellow',
-                                         'drumblack', 'drumcyan', 'drummagenta', 'drumyellow')
-                  ORDER BY p.id, pci.property";
-
-        $result = $DB->request($query);
+        $result = $DB->request([
+            'SELECT' => [
+                'pci.id AS cartridgeinfo_id',
+                'pci.printers_id',
+                'pci.property',
+                'pci.value',
+                'p.name AS printer_name',
+                'p.locations_id',
+                'p.printermodels_id'
+            ],
+            'FROM' => 'glpi_printers_cartridgeinfos AS pci',
+            'INNER JOIN' => [
+                'glpi_printers AS p' => [
+                    'ON' => [
+                        'p' => 'id',
+                        'pci' => 'printers_id'
+                    ]
+                ]
+            ],
+            'LEFT JOIN' => [
+                'glpi_plugin_snmptoneralerts_excludedprinters AS ep' => [
+                    'ON' => [
+                        'ep' => 'printers_id',
+                        'p' => 'id'
+                    ]
+                ]
+            ],
+            'WHERE' => [
+                'ep.id' => null,
+                'p.is_deleted' => 0,
+                'pci.property' => ['tonerblack', 'tonercyan', 'tonermagenta', 'toneryellow',
+                                   'drumblack', 'drumcyan', 'drummagenta', 'drumyellow']
+            ],
+            'ORDER' => ['p.id', 'pci.property']
+        ]);
 
         foreach ($result as $row) {
             $checked++;
@@ -119,9 +174,10 @@ class TonerMonitor extends CommonDBTM
             $cartridgeinfo_id = $row['cartridgeinfo_id'];
 
             // Check if state exists
-            $state_query = "SELECT * FROM glpi_plugin_snmptoneralerts_states 
-                           WHERE printers_cartridgeinfos_id = " . $cartridgeinfo_id;
-            $state_result = $DB->request($state_query);
+            $state_result = $DB->request([
+                'FROM' => 'glpi_plugin_snmptoneralerts_states',
+                'WHERE' => ['printers_cartridgeinfos_id' => $cartridgeinfo_id]
+            ]);
             $state = null;
             
             if (count($state_result) > 0) {
@@ -219,41 +275,59 @@ class TonerMonitor extends CommonDBTM
         global $DB;
 
         $config = Config::getConfig();
-        
-        if (!$config['enable_daily_alerts']) {
-            $task->log("Daily alerts are disabled in configuration");
-            return 0;
-        }
-
         $max_alerts = $config['max_daily_alerts'];
         $sent = 0;
 
-        // Get all toners in alert state with alert_count <= max_alerts
-        $query = "SELECT s.*, 
-                         p.name as printer_name,
-                         p.locations_id,
-                         p.printermodels_id,
-                         l.completename as location_name,
-                         pm.name as printer_model_name
-                  FROM glpi_plugin_snmptoneralerts_states as s
-                  INNER JOIN glpi_printers as p ON p.id = s.printers_id
-                  LEFT JOIN glpi_locations as l ON l.id = p.locations_id
-                  LEFT JOIN glpi_printermodels as pm ON pm.id = p.printermodels_id
-                  WHERE s.is_alert = 1
-                    AND s.alert_count < $max_alerts
-                  ORDER BY p.name, s.property";
-
-        $result = $DB->request($query);
+        // Get all toners in alert state with alert_count < max_alerts
+        $result = $DB->request([
+            'SELECT' => [
+                's.*',
+                'p.name AS printer_name',
+                'p.locations_id',
+                'p.printermodels_id AS printermodels_id',
+                'l.completename AS location_name',
+                'pm.name AS printer_model_name'
+            ],
+            'FROM' => 'glpi_plugin_snmptoneralerts_states AS s',
+            'INNER JOIN' => [
+                'glpi_printers AS p' => [
+                    'ON' => [
+                        'p' => 'id',
+                        's' => 'printers_id'
+                    ]
+                ]
+            ],
+            'LEFT JOIN' => [
+                'glpi_locations AS l' => [
+                    'ON' => [
+                        'l' => 'id',
+                        'p' => 'locations_id'
+                    ]
+                ],
+                'glpi_printermodels AS pm' => [
+                    'ON' => [
+                        'pm' => 'id',
+                        'p' => 'printermodels_id'
+                    ]
+                ]
+            ],
+            'WHERE' => [
+                's.is_alert' => 1,
+                new \QueryExpression('s.alert_count < ' . $DB->escape($max_alerts))
+            ],
+            'ORDER' => ['p.name', 's.property']
+        ]);
         $alerts_by_printer = [];
 
         foreach ($result as $row) {
             $printer_id = $row['printers_id'];
             if (!isset($alerts_by_printer[$printer_id])) {
                 $alerts_by_printer[$printer_id] = [
-                    'printer_name'  => $row['printer_name'],
-                    'location'      => $row['location_name'] ?? __('Unknown'),
-                    'model'         => $row['printer_model_name'] ?? __('Unknown'),
-                    'toners'        => [],
+                    'printer_name'      => $row['printer_name'],
+                    'location'          => $row['location_name'] ?? __('Unknown'),
+                    'model'             => $row['printer_model_name'] ?? __('Unknown'),
+                    'printer_model_id'  => $row['printermodels_id'],
+                    'toners'            => [],
                 ];
             }
 
@@ -317,41 +391,59 @@ class TonerMonitor extends CommonDBTM
         global $DB;
 
         $config = Config::getConfig();
-        
-        if (!$config['enable_weekly_alerts']) {
-            $task->log("Weekly alerts are disabled in configuration");
-            return 0;
-        }
-
         $max_alerts = $config['max_daily_alerts'];
         $sent = 0;
 
         // Get all toners still in alert state with alert_count >= max_alerts
-        $query = "SELECT s.*, 
-                         p.name as printer_name,
-                         p.locations_id,
-                         p.printermodels_id,
-                         l.completename as location_name,
-                         pm.name as printer_model_name
-                  FROM glpi_plugin_snmptoneralerts_states as s
-                  INNER JOIN glpi_printers as p ON p.id = s.printers_id
-                  LEFT JOIN glpi_locations as l ON l.id = p.locations_id
-                  LEFT JOIN glpi_printermodels as pm ON pm.id = p.printermodels_id
-                  WHERE s.is_alert = 1
-                    AND s.alert_count >= $max_alerts
-                  ORDER BY p.name, s.property";
-
-        $result = $DB->request($query);
+        $result = $DB->request([
+            'SELECT' => [
+                's.*',
+                'p.name AS printer_name',
+                'p.locations_id',
+                'p.printermodels_id AS printermodels_id',
+                'l.completename AS location_name',
+                'pm.name AS printer_model_name'
+            ],
+            'FROM' => 'glpi_plugin_snmptoneralerts_states AS s',
+            'INNER JOIN' => [
+                'glpi_printers AS p' => [
+                    'ON' => [
+                        'p' => 'id',
+                        's' => 'printers_id'
+                    ]
+                ]
+            ],
+            'LEFT JOIN' => [
+                'glpi_locations AS l' => [
+                    'ON' => [
+                        'l' => 'id',
+                        'p' => 'locations_id'
+                    ]
+                ],
+                'glpi_printermodels AS pm' => [
+                    'ON' => [
+                        'pm' => 'id',
+                        'p' => 'printermodels_id'
+                    ]
+                ]
+            ],
+            'WHERE' => [
+                's.is_alert' => 1,
+                new \QueryExpression('s.alert_count >= ' . $DB->escape($max_alerts))
+            ],
+            'ORDER' => ['p.name', 's.property']
+        ]);
         $alerts_by_printer = [];
 
         foreach ($result as $row) {
             $printer_id = $row['printers_id'];
             if (!isset($alerts_by_printer[$printer_id])) {
                 $alerts_by_printer[$printer_id] = [
-                    'printer_name'  => $row['printer_name'],
-                    'location'      => $row['location_name'] ?? __('Unknown'),
-                    'model'         => $row['printer_model_name'] ?? __('Unknown'),
-                    'toners'        => [],
+                    'printer_name'      => $row['printer_name'],
+                    'location'          => $row['location_name'] ?? __('Unknown'),
+                    'model'             => $row['printer_model_name'] ?? __('Unknown'),
+                    'printer_model_id'  => $row['printermodels_id'],
+                    'toners'            => [],
                 ];
             }
 
@@ -385,44 +477,45 @@ class TonerMonitor extends CommonDBTM
      */
     private static function sendAlertNotification($alerts_data, $type, $config)
     {
-        global $DB;
-
-        if (empty($config['email_recipients'])) {
-            return 0;
-        }
-
-        // Build notification content
-        $notification_data = [
-            'type'     => $type,
-            'printers' => $alerts_data,
-            'config'   => $config,
-        ];
-
-        // Use GLPI notification system
-        $emails = array_map('trim', explode(',', $config['email_recipients']));
+        $event_name = $type == 'daily' ? 'toner_alert_daily' : 'toner_alert_weekly';
+        $printers_count = count($alerts_data);
         
-        foreach ($emails as $email) {
-            if (empty($email)) {
-                continue;
-            }
+        // Create a TonerAlert object for this notification batch
+        $toner_alert = new TonerAlert();
+        $notification_id = $toner_alert->add([
+            'alert_type'     => $type,
+            'printers_count' => $printers_count,
+            'toners_count'   => array_sum(array_map(function($p) { return count($p['toners']); }, $alerts_data)),
+            'date_creation'  => $_SESSION['glpi_currenttime']
+        ]);
 
-            QueuedNotification::forceSendFor(
-                'GlpiPlugin\Snmptoneralerts\NotificationTargetTonerAlert',
-                $type == 'daily' ? 'toner_alert_daily' : 'toner_alert_weekly',
-                $notification_data,
-                ['email' => $email]
-            );
+        if ($notification_id) {
+            // Get the TonerAlert object we just created
+            $toner_alert_obj = new TonerAlert();
+            if ($toner_alert_obj->getFromDB($notification_id)) {
+                // Raise notification event with TonerAlert as itemtype
+                \NotificationEvent::raiseEvent(
+                    $event_name,
+                    $toner_alert_obj,
+                    [
+                        'printers' => $alerts_data,
+                        'config'   => $config
+                    ]
+                );
+                // Return the number of printers (for log display)
+                return $printers_count;
+            }
         }
 
-        return count($alerts_data);
+        return 0;
     }
 
     /**
-     * Get cartridge reference from printer model and toner property
+     * Get cartridge info (name and reference) from printer model and toner property
      *
      * @param int $printer_model_id
      * @param string $property
-     * @return string
+     * @return array ['name' => string, 'ref' => string]
      */
     public static function getCartridgeReference($printer_model_id, $property)
     {
@@ -443,18 +536,31 @@ class TonerMonitor extends CommonDBTM
         $search_terms = $color_map[$property] ?? [];
         
         if (empty($search_terms)) {
-            return __('Unknown');
+            return ['name' => __('Unknown'), 'ref' => ''];
         }
 
         // Search for cartridge items linked to this printer model
-        $query = "SELECT ci.ref, ci.name, ci.comment
-                  FROM glpi_cartridgeitems as ci
-                  INNER JOIN glpi_cartridgeitems_printermodels as cipm 
-                      ON cipm.cartridgeitems_id = ci.id
-                  WHERE cipm.printermodels_id = " . $printer_model_id;
+        $result = $DB->request([
+            'SELECT' => [
+                'ci.ref',
+                'ci.name',
+                'ci.comment'
+            ],
+            'FROM' => 'glpi_cartridgeitems AS ci',
+            'INNER JOIN' => [
+                'glpi_cartridgeitems_printermodels AS cipm' => [
+                    'ON' => [
+                        'cipm' => 'cartridgeitems_id',
+                        'ci' => 'id'
+                    ]
+                ]
+            ],
+            'WHERE' => [
+                'cipm.printermodels_id' => $printer_model_id
+            ]
+        ]);
 
-        $result = $DB->request($query);
-
+        // First pass: search for specific color
         foreach ($result as $row) {
             $comment = strtolower($row['comment'] ?? '');
             $name = strtolower($row['name'] ?? '');
@@ -462,11 +568,35 @@ class TonerMonitor extends CommonDBTM
             foreach ($search_terms as $term) {
                 if (strpos($comment, strtolower($term)) !== false || 
                     strpos($name, strtolower($term)) !== false) {
-                    return $row['ref'] ?? $row['name'];
+                    return [
+                        'name' => $row['name'] ?? '',
+                        'ref' => $row['ref'] ?? ''
+                    ];
                 }
             }
         }
 
-        return __('Not defined');
+        // Second pass: for color toners (not black), search for tri-color cartridge
+        $is_color_toner = in_array($property, ['tonercyan', 'tonermagenta', 'toneryellow']);
+        if ($is_color_toner) {
+            foreach ($result as $row) {
+                $comment = strtolower($row['comment'] ?? '');
+                $name = strtolower($row['name'] ?? '');
+                
+                if (strpos($comment, 'tri-color') !== false || 
+                    strpos($name, 'tri-color') !== false ||
+                    strpos($comment, 'tricolor') !== false || 
+                    strpos($name, 'tricolor') !== false ||
+                    strpos($comment, 'couleur') !== false || 
+                    strpos($name, 'couleur') !== false) {
+                    return [
+                        'name' => $row['name'] ?? '',
+                        'ref' => $row['ref'] ?? ''
+                    ];
+                }
+            }
+        }
+
+        return ['name' => __('Not defined'), 'ref' => ''];
     }
 }

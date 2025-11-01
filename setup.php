@@ -31,9 +31,10 @@
 use Glpi\Plugin\Hooks;
 use GlpiPlugin\Snmptoneralerts\Config;
 use GlpiPlugin\Snmptoneralerts\TonerMonitor;
+use GlpiPlugin\Snmptoneralerts\TonerAlert;
 use GlpiPlugin\Snmptoneralerts\NotificationTargetTonerAlert;
 
-define('PLUGIN_SNMPTONERALERTS_VERSION', '1.0.3');
+define('PLUGIN_SNMPTONERALERTS_VERSION', '1.1.0');
 
 // Minimal GLPI version, inclusive
 define('PLUGIN_SNMPTONERALERTS_MIN_GLPI', '11.0.0');
@@ -55,15 +56,15 @@ function plugin_init_snmptoneralerts()
     // Register Config class to add tab in GLPI Config
     Plugin::registerClass(Config::class, ['addtabon' => 'Config']);
 
-    // Register notification target
+    // Register TonerAlert as notification itemtype (like Example plugin)
     Plugin::registerClass(
-        NotificationTargetTonerAlert::class,
+        TonerAlert::class,
         ['notificationtemplates_types' => true]
     );
 
-    // Config page
+    // Config page - redirect to Config tab with forcetab
     if (Session::haveRight('config', UPDATE)) {
-        $PLUGIN_HOOKS['config_page']['snmptoneralerts'] = 'front/config.php';
+        $PLUGIN_HOOKS['config_page']['snmptoneralerts'] = '../../../front/config.form.php?forcetab=' . urlencode(Config::class . '$1');
     }
 
     // Change profile hook

@@ -20,7 +20,10 @@ msgstr ""
 msgid "SNMP Toner Alerts"
 msgstr ""
 
-# src/Config.php
+# src/Config.php - Tab name
+msgid "Alertes toners SNMP"
+msgstr ""
+
 msgid "SNMP Toner Alerts Configuration"
 msgstr ""
 
@@ -61,6 +64,27 @@ msgid "Weekly alert day"
 msgstr ""
 
 msgid "Weekly alert time"
+msgstr ""
+
+msgid "To configure email recipients, go to:"
+msgstr ""
+
+msgid "Configuration > Notifications > Notifications"
+msgstr ""
+
+msgid "Look for \"SNMP Toner Alert - Daily\" and \"SNMP Toner Alert - Weekly\" to add recipients (users, groups, profiles)"
+msgstr ""
+
+msgid "Alert scheduling:"
+msgstr ""
+
+msgid "Alert times are managed by GLPI Automatic Actions (CronTasks)."
+msgstr ""
+
+msgid "For precise scheduling (e.g., daily at 8:00 AM), configure system cron jobs as documented in INSTALL.md"
+msgstr ""
+
+msgid "Configuration > Automatic actions"
 msgstr ""
 
 msgid "Monday"

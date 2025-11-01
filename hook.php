@@ -29,7 +29,9 @@
  */
 
 use GlpiPlugin\Snmptoneralerts\TonerMonitor;
-use GlpiPlugin\Snmptoneralerts\Config;
+use GlpiPlugin\Snmptoneralerts\TonerAlert;
+use GlpiPlugin\Snmptoneralerts\Config as PluginConfig;
+use GlpiPlugin\Snmptoneralerts\NotificationTargetTonerAlert;
 
 /**
  * Plugin change profile hook
@@ -51,8 +53,8 @@ function plugin_snmptoneralerts_install()
     $migration = new Migration(PLUGIN_SNMPTONERALERTS_VERSION);
     
     // Set default configuration values
-    $defaults = Config::getDefaults();
-    Config::setConfigurationValues('plugin:Snmptoneralerts', $defaults);
+    $defaults = PluginConfig::getDefaults();
+    Config::setConfigurationValues('snmptoneralerts', $defaults);
 
     $default_charset   = DBConnection::getDefaultCharset();
     $default_collation = DBConnection::getDefaultCollation();
@@ -64,13 +66,13 @@ function plugin_snmptoneralerts_install()
                   `id` int {$default_key_sign} NOT NULL AUTO_INCREMENT,
                   `printers_id` int {$default_key_sign} NOT NULL,
                   `reason` text,
-                  `date_creation` datetime DEFAULT NULL,
+                  `date_creation` timestamp NULL DEFAULT NULL,
                   `users_id` int {$default_key_sign} NOT NULL DEFAULT '0',
                   PRIMARY KEY (`id`),
                   KEY `printers_id` (`printers_id`),
                   KEY `users_id` (`users_id`)
                ) ENGINE=InnoDB DEFAULT CHARSET={$default_charset} COLLATE={$default_collation} ROW_FORMAT=DYNAMIC;";
-        $DB->doQuery($query);
+        $DB->doQuery($query) or die($DB->error());
     }
 
     // Table for toner states (current alert status)
@@ -83,16 +85,16 @@ function plugin_snmptoneralerts_install()
                   `current_value` varchar(50) DEFAULT NULL,
                   `is_alert` tinyint NOT NULL DEFAULT '0',
                   `alert_count` int NOT NULL DEFAULT '0',
-                  `last_alert_date` datetime DEFAULT NULL,
-                  `first_alert_date` datetime DEFAULT NULL,
-                  `date_mod` datetime DEFAULT NULL,
+                  `last_alert_date` timestamp NULL DEFAULT NULL,
+                  `first_alert_date` timestamp NULL DEFAULT NULL,
+                  `date_mod` timestamp NULL DEFAULT NULL,
                   PRIMARY KEY (`id`),
                   UNIQUE KEY `unique_cartridgeinfo` (`printers_cartridgeinfos_id`),
                   KEY `printers_id` (`printers_id`),
                   KEY `is_alert` (`is_alert`),
                   KEY `property` (`property`)
                ) ENGINE=InnoDB DEFAULT CHARSET={$default_charset} COLLATE={$default_collation} ROW_FORMAT=DYNAMIC;";
-        $DB->doQuery($query);
+        $DB->doQuery($query) or die($DB->error());
     }
 
     // Table for alerts history
@@ -106,13 +108,28 @@ function plugin_snmptoneralerts_install()
                   `alert_type` enum('daily','weekly') NOT NULL,
                   `alert_count` int NOT NULL DEFAULT '1',
                   `notification_sent` tinyint NOT NULL DEFAULT '0',
-                  `date_creation` datetime DEFAULT NULL,
+                  `date_creation` timestamp NULL DEFAULT NULL,
                   PRIMARY KEY (`id`),
                   KEY `printers_id` (`printers_id`),
                   KEY `alert_type` (`alert_type`),
                   KEY `date_creation` (`date_creation`)
                ) ENGINE=InnoDB DEFAULT CHARSET={$default_charset} COLLATE={$default_collation} ROW_FORMAT=DYNAMIC;";
-        $DB->doQuery($query);
+        $DB->doQuery($query) or die($DB->error());
+    }
+
+    // Table for notification sessions (itemtype for notifications)
+    if (!$DB->tableExists('glpi_plugin_snmptoneralerts_notifications')) {
+        $query = "CREATE TABLE `glpi_plugin_snmptoneralerts_notifications` (
+                  `id` int {$default_key_sign} NOT NULL AUTO_INCREMENT,
+                  `alert_type` enum('daily','weekly') NOT NULL,
+                  `printers_count` int NOT NULL DEFAULT '0',
+                  `toners_count` int NOT NULL DEFAULT '0',
+                  `date_creation` timestamp NULL DEFAULT NULL,
+                  PRIMARY KEY (`id`),
+                  KEY `alert_type` (`alert_type`),
+                  KEY `date_creation` (`date_creation`)
+               ) ENGINE=InnoDB DEFAULT CHARSET={$default_charset} COLLATE={$default_collation} ROW_FORMAT=DYNAMIC;";
+        $DB->doQuery($query) or die($DB->error());
     }
 
     // Register cron tasks
@@ -140,7 +157,137 @@ function plugin_snmptoneralerts_install()
         ['state' => CronTask::STATE_WAITING, 'mode' => CronTask::MODE_EXTERNAL]
     );
 
+    // Create notification templates and notifications
+    plugin_snmptoneralerts_createNotifications();
+
     return true;
+}
+
+/**
+ * Create notification templates and notifications
+ *
+ * @return void
+ */
+function plugin_snmptoneralerts_createNotifications()
+{
+    global $DB;
+
+    // Create notification templates for daily and weekly alerts
+    $notification_template = new NotificationTemplate();
+    $notification = new Notification();
+    $notif_notificationtemplate = new Notification_NotificationTemplate();
+
+    // Template for Daily Alerts
+    $template_id_daily = null;
+    if ($notification_template->getFromDBByCrit(['itemtype' => TonerAlert::class, 'name' => 'SNMP Toner Alert - Daily'])) {
+        $template_id_daily = $notification_template->fields['id'];
+    }
+    
+    if (!$template_id_daily) {
+        $template_id_daily = $notification_template->add([
+            'name'     => 'SNMP Toner Alert - Daily',
+            'itemtype' => TonerAlert::class,
+            'comment'  => 'Template for daily toner alerts'
+        ]);
+
+        // Add translation (French)
+        $translation = new NotificationTemplateTranslation();
+        $translation->add([
+            'notificationtemplates_id' => $template_id_daily,
+            'language'                 => '',
+            'subject'                  => '[GLPI] Alertes toners - Quotidienne',
+            'content_text'             => "Bonjour,\n\n##toner.count## imprimante(s) ont des toners en dessous du seuil d'alerte (##toner.threshold##%).\n\nType d'alerte: ##toner.alert_type##\n\n##PRINTERS##\n\nMerci de vérifier les niveaux et de commander les cartouches nécessaires.\n\n---\nSNMP Toner Alerts pour GLPI\nCe message est envoyé automatiquement.",
+            'content_html'             => "<p>Bonjour,</p><p>##toner.count## imprimante(s) ont des toners en dessous du seuil d'alerte (##toner.threshold##%).</p><p>Type d'alerte: ##toner.alert_type##</p><pre>##PRINTERS##</pre><p>Merci de vérifier les niveaux et de commander les cartouches nécessaires.</p><hr><p style='color: #666; font-size: 12px;'>SNMP Toner Alerts pour GLPI<br>Ce message est envoyé automatiquement.</p>"
+        ]);
+    }
+
+    // Template for Weekly Recap
+    $template_id_weekly = null;
+    if ($notification_template->getFromDBByCrit(['itemtype' => TonerAlert::class, 'name' => 'SNMP Toner Alert - Weekly'])) {
+        $template_id_weekly = $notification_template->fields['id'];
+    }
+    
+    if (!$template_id_weekly) {
+        $template_id_weekly = $notification_template->add([
+            'name'     => 'SNMP Toner Alert - Weekly',
+            'itemtype' => TonerAlert::class,
+            'comment'  => 'Template for weekly toner recap'
+        ]);
+
+        // Add translation (French)
+        $translation = new NotificationTemplateTranslation();
+        $translation->add([
+            'notificationtemplates_id' => $template_id_weekly,
+            'language'                 => '',
+            'subject'                  => '[GLPI] Récapitulatif toners - Hebdomadaire',
+            'content_text'             => "Bonjour,\n\n##toner.count## imprimante(s) ont des toners en dessous du seuil d'alerte (##toner.threshold##%).\n\nType d'alerte: ##toner.alert_type## (alertes répétées)\n\n##PRINTERS##\n\nCes imprimantes nécessitent une attention urgente.\n\n---\nSNMP Toner Alerts pour GLPI\nCe message est envoyé automatiquement.",
+            'content_html'             => "<p>Bonjour,</p><p>##toner.count## imprimante(s) ont des toners en dessous du seuil d'alerte (##toner.threshold##%).</p><p>Type d'alerte: ##toner.alert_type## (alertes répétées)</p><pre>##PRINTERS##</pre><p><strong>Ces imprimantes nécessitent une attention urgente.</strong></p><hr><p style='color: #666; font-size: 12px;'>SNMP Toner Alerts pour GLPI<br>Ce message est envoyé automatiquement.</p>"
+        ]);
+    }
+
+    // Create Notification for Daily Alerts
+    $notif_id_daily = null;
+    if ($notification->getFromDBByCrit(['itemtype' => TonerAlert::class, 'event' => 'toner_alert_daily'])) {
+        $notif_id_daily = $notification->fields['id'];
+    }
+    
+    if (!$notif_id_daily) {
+        $notif_id_daily = $notification->add([
+            'name'         => 'SNMP Toner Alert - Daily',
+            'entities_id'  => 0,
+            'itemtype'     => TonerAlert::class,
+            'event'        => 'toner_alert_daily',
+            'is_active'    => 1,
+            'is_recursive' => 1
+        ]);
+
+        // Link notification to template
+        $notif_notificationtemplate->add([
+            'notifications_id'         => $notif_id_daily,
+            'notificationtemplates_id' => $template_id_daily,
+            'mode'                     => Notification_NotificationTemplate::MODE_MAIL
+        ]);
+
+        // Add Administrator as default recipient
+        $notif_target = new NotificationTarget();
+        $notif_target->add([
+            'notifications_id' => $notif_id_daily,
+            'type'             => Notification::GLOBAL_ADMINISTRATOR,
+            'items_id'         => Notification::GLOBAL_ADMINISTRATOR
+        ]);
+    }
+
+    // Create Notification for Weekly Recap
+    $notif_id_weekly = null;
+    if ($notification->getFromDBByCrit(['itemtype' => TonerAlert::class, 'event' => 'toner_alert_weekly'])) {
+        $notif_id_weekly = $notification->fields['id'];
+    }
+    
+    if (!$notif_id_weekly) {
+        $notif_id_weekly = $notification->add([
+            'name'         => 'SNMP Toner Alert - Weekly',
+            'entities_id'  => 0,
+            'itemtype'     => TonerAlert::class,
+            'event'        => 'toner_alert_weekly',
+            'is_active'    => 1,
+            'is_recursive' => 1
+        ]);
+
+        // Link notification to template
+        $notif_notificationtemplate->add([
+            'notifications_id'         => $notif_id_weekly,
+            'notificationtemplates_id' => $template_id_weekly,
+            'mode'                     => Notification_NotificationTemplate::MODE_MAIL
+        ]);
+
+        // Add Administrator as default recipient
+        $notif_target = new NotificationTarget();
+        $notif_target->add([
+            'notifications_id' => $notif_id_weekly,
+            'type'             => Notification::GLOBAL_ADMINISTRATOR,
+            'items_id'         => Notification::GLOBAL_ADMINISTRATOR
+        ]);
+    }
 }
 
 
@@ -153,14 +300,22 @@ function plugin_snmptoneralerts_uninstall()
 {
     global $DB;
 
+    // Delete configuration using native GLPI Config class
     $config = new Config();
-    $config->deleteConfigurationValues('plugin:Snmptoneralerts');
+    $config->deleteConfigurationValues('snmptoneralerts');
+
+    // Security: Ensure all configuration keys are removed from glpi_configs
+    // In case deleteConfigurationValues didn't work properly
+    $DB->delete('glpi_configs', [
+        'context' => 'snmptoneralerts'
+    ]);
 
     // Drop plugin tables
     $tables = [
         'glpi_plugin_snmptoneralerts_excludedprinters',
         'glpi_plugin_snmptoneralerts_states',
         'glpi_plugin_snmptoneralerts_alerts',
+        'glpi_plugin_snmptoneralerts_notifications',
     ];
 
     foreach ($tables as $table) {
@@ -173,6 +328,19 @@ function plugin_snmptoneralerts_uninstall()
     $DB->delete('glpi_crontasks', [
         'itemtype' => TonerMonitor::class,
     ]);
+
+    // Remove notifications created by the plugin
+    $DB->delete('glpi_notifications', [
+        'itemtype' => TonerAlert::class,
+    ]);
+
+    // Remove notification templates created by the plugin
+    $DB->delete('glpi_notificationtemplates', [
+        'itemtype' => TonerAlert::class,
+    ]);
+
+    // Note: Notification targets and translations are automatically deleted
+    // by GLPI's foreign key constraints (ON DELETE CASCADE)
 
     return true;
 }

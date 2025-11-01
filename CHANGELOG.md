@@ -5,6 +5,74 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-11-01
+
+### ⚠️ BREAKING CHANGES
+
+#### Architecture des notifications
+- **Itemtype personnalisé** : Les notifications utilisent `TonerAlert` comme itemtype
+- **Bénéfice** : Architecture conforme aux standards GLPI, notifications plus fiables et traçables
+
+### ✨ Nouvelles fonctionnalités
+
+#### Affichage des références de cartouches
+- **Noms + références** dans les notifications : `HP 305A (Ref: CE410A)`
+- **Support tri-color** : Détection automatique des cartouches multicolores
+- **Fallback intelligent** : Recherche de cartouches tri-color si couleur spécifique non trouvée
+- Améliore considérablement l'utilité des alertes pour la commande de consommables
+
+#### Message-ID RFC-compliant
+- **Correction** : Remplacement des backslashes par des points
+- **Format** : `GLPI_xxx-GlpiPlugin.Snmptoneralerts.TonerAlert-2/toner_alert_daily...`
+- **Bénéfice** : Conformité RFC 5322, meilleure compatibilité email
+
+### 🎨 Améliorations de l'interface
+
+#### Configuration simplifiée
+- **Suppression des champs redondants** :
+  - `check_frequency_hours` (jamais utilisé)
+  - `enable_daily_alerts` (doublon avec Actions automatiques)
+  - `enable_weekly_alerts` (doublon avec Actions automatiques)
+- **Liens de configuration rapide** :
+  - 🔔 Destinataires Email
+  - ⏰ Planification & Fréquence
+  - ✉️ Modèles d'Email
+- **Interface épurée** : Seulement 2 paramètres configurables (seuil, max alertes)
+
+### 🔧 Corrections de bugs
+
+#### Notifications
+- ✅ Correction liaison templates/notifications lors de l'installation
+- ✅ Événements correctement affectés aux notifications
+- ✅ Page "Destinataires" accessible sans erreur
+- ✅ Double pourcentage corrigé (20% au lieu de 20%%)
+
+#### Données et logs
+- ✅ Affichage correct du nombre d'imprimantes (11 au lieu de 1)
+- ✅ Ajout de `printer_model_id` pour recherche des références
+- ✅ Références de cartouches affichées correctement
+
+### 🧹 Nettoyage et maintenance
+
+#### Désinstallation propre
+- **Suppression complète** de tous les résidus dans `glpi_configs`
+- **Nettoyage** des notifications et templates du plugin
+- **Suppression** des CronTasks
+- **Base de données propre** après désinstallation
+
+#### Code et architecture
+- Suppression des vérifications `enable_daily/weekly_alerts` inutiles
+- Simplification du contrôle d'activation (uniquement via CronTasks GLPI)
+- Actions automatiques activées par défaut lors de l'installation
+- Code plus maintenable et conforme aux standards GLPI
+
+### 📚 Documentation
+- Mise à jour complète du README avec la nouvelle architecture
+- Guide d'installation actualisé
+- Documentation du nouveau workflow de configuration
+
+---
+
 ## [1.0.3] - 2025-10-31
 
 ### 🌍 Localisation

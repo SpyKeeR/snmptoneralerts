@@ -5,7 +5,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![GLPI](https://img.shields.io/badge/GLPI-≥11.0-green.svg)](https://glpi-project.org/)
 [![PHP](https://img.shields.io/badge/PHP-≥8.2-777BB4.svg)](https://www.php.net/)
-[![Version](https://img.shields.io/badge/version-1.0.3-orange.svg)](https://github.com/SpyKeeR/snmptoneralerts/releases)
+[![Version](https://img.shields.io/badge/version-1.1.0-orange.svg)](https://github.com/SpyKeeR/snmptoneralerts/releases)
 
 **Plugin GLPI pour la surveillance automatique des niveaux de toners via SNMP**
 
@@ -141,25 +141,50 @@ SELECT COUNT(*) FROM glpi_printers_cartridgeinfos;
 
 ## ⚙️ Configuration de base
 
-### Paramètres essentiels
+### 1. Paramètres du plugin
 
-**Configuration** → **SNMP Toner Alerts**
+**Configuration** → **Configuration** → **Onglet "Alertes toners SNMP"**
 
-| Paramètre | Valeur recommandée |
-|-----------|-------------------|
-| **Seuil d'alerte** | 15-25% selon criticité |
-| **Destinataires** | emails séparés par virgules |
-| **Fréquence checks** | 4-8 heures |
+| Paramètre | Valeur recommandée | Description |
+|-----------|-------------------|-------------|
+| **Seuil d'alerte (%)** | 15-25% | Niveau sous lequel déclencher les alertes |
+| **Max alertes quotidiennes** | 3 | Nombre d'alertes avant basculement hebdomadaire |
 
-### Actions automatiques (CronTasks)
+**Liens de configuration rapide** (dans le formulaire) :
+- 🔔 **Destinataires Email** → Configure les destinataires des notifications
+- ⏰ **Planification & Fréquence** → Configure les horaires et fréquences
+- ✉️ **Modèles d'Email** → Personnalise les templates de notifications
+
+### 2. Destinataires des notifications
+
+**Configuration** → **Notifications** → **Notifications**
+
+Rechercher **"SNMP Toner Alert - Daily"** et **"SNMP Toner Alert - Weekly"** :
+- Ajouter des utilisateurs, groupes ou profils dans l'onglet **Destinataires**
+- Possibilité d'ajouter des emails externes
+
+### 3. Actions automatiques (CronTasks)
 
 **Configuration** → **Actions automatiques**
 
-| CronTask | Fréquence | Rôle |
-|----------|-----------|------|
-| **CheckTonerLevels** | 6h | Vérifie niveaux |
-| **SendDailyAlerts** | Quotidien 08h00 | Alertes compteur ≤3 |
-| **SendWeeklyRecap** | Vendredi 12h00 | Récap compteur >3 |
+| CronTask | Fréquence | Activation | Rôle |
+|----------|-----------|------------|------|
+| **CheckTonerLevels** | 6h | ✅ Auto | Vérifie les niveaux de toners |
+| **SendDailyAlerts** | Quotidien | ✅ Auto | Envoie alertes (compteur ≤3) |
+| **SendWeeklyRecap** | Hebdomadaire | ✅ Auto | Envoie récaps (compteur >3) |
+
+> ℹ️ Les CronTasks sont **activés par défaut** lors de l'installation
+
+**Pour personnaliser les horaires** :
+- Cliquer sur la CronTask
+- Modifier la fréquence d'exécution
+- Pour horaires précis (ex: 08h00), configurer un cron système (voir [INSTALL.md](INSTALL.md))
+
+### 4. Personnalisation des templates
+
+**Configuration** → **Notifications** → **Modèles de notifications**
+
+Rechercher **"SNMP Toner Alert"** pour modifier les templates email.
 
 > 📖 **Configuration avancée** : voir [INSTALL.md](INSTALL.md) pour exclusions, templates, troubleshooting...
 
@@ -179,16 +204,30 @@ glpi_printers → glpi_printers_cartridgeinfos (SNMP)
 glpi_plugin_snmptoneralerts_excludedprinters (Exclusions)
 ```
 
-### Mapping SNMP → Cartouches
+### Affichage automatique des références
 
-Le plugin associe automatiquement les propriétés SNMP aux références de cartouches en cherchant des mots-clés dans `glpi_cartridgeitems.comment` :
+Le plugin affiche automatiquement les **noms et références** des cartouches dans les notifications en associant :
+- Les propriétés SNMP (tonerblack, tonercyan, etc.)
+- Les modèles d'imprimantes (`glpi_printermodels`)
+- Les types de cartouches (`glpi_cartridgeitems`)
 
-| Propriété SNMP | Mots-clés |
-|----------------|-----------|
-| tonerblack | black, noir, bk |
-| tonercyan | cyan, c |
-| tonermagenta | magenta, m |
-| toneryellow | yellow, jaune, y |
+**Mapping automatique** :
+
+| Propriété SNMP | Mots-clés recherchés | Fallback |
+|----------------|---------------------|----------|
+| tonerblack | black, noir, bk | - |
+| tonercyan | cyan, c | tri-color, tricolor, couleur |
+| tonermagenta | magenta, m | tri-color, tricolor, couleur |
+| toneryellow | yellow, jaune, y | tri-color, tricolor, couleur |
+| drumblack/cyan/magenta/yellow | drum + couleur | - |
+
+**Format dans les notifications** :
+```
+- Toner noir: 19% (HP 305A Black (Ref: CE410A)) [Alerte 2/3]
+- Toner cyan: 10% (HP 305 Tri-color (Ref: CE411A)) [Alerte 1/3]
+```
+
+> 💡 Le système cherche d'abord la couleur spécifique, puis fallback vers tri-color pour les cartouches multicolores
 
 ---
 

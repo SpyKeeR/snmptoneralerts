@@ -6,13 +6,80 @@
 
 ## 📋 Table des matières
 
-1. [Prérequis](#-prérequis)
-2. [Installation](#-installation)
-3. [Configuration](#️-configuration)
-4. [Actions automatiques](#-actions-automatiques)
-5. [Templates de notifications](#-templates-de-notifications)
-6. [Architecture technique](#️-architecture-technique)
-7. [Dépannage](#-dépannage)
+1. [⚠️ Nouveautés v1.1.0](#️-nouveautés-v110)
+2. [Prérequis](#-prérequis)
+3. [Installation](#-installation)
+4. [Configuration](#️-configuration)
+5. [Actions automatiques](#-actions-automatiques)
+6. [Templates de notifications](#-templates-de-notifications)
+7. [Architecture technique](#️-architecture-technique)
+8. [Dépannage](#-dépannage)
+
+---
+
+## ⚠️ Nouveautés v1.1.0
+
+> **Version initiale avec architecture complète**
+
+### ✨ Fonctionnalités principales
+
+1. **Message-ID RFC-compliant** 
+   - Les Message-ID des emails utilisent maintenant des points au lieu de backslashes
+   - Format : `GlpiPlugin.Snmptoneralerts.TonerAlert.{id}.{timestamp}@{domain}`
+   - Compatible avec tous les serveurs de messagerie
+
+2. **Affichage nom + référence des cartouches**
+   - Les notifications affichent maintenant : `HP 305A Black (Ref: CE410A)`
+   - Au lieu de seulement : `Ref: CE410A`
+   - Plus facile pour identifier et commander les bonnes cartouches
+
+3. **Support des cartouches tri-color**
+   - Fallback automatique pour les cartouches 3 couleurs en 1
+   - Si `cyan`, `magenta` ou `yellow` non trouvés → cherche `tri-color`
+   - Simplifie la configuration pour les imprimantes avec cartouche multicolore
+
+4. **Liens de configuration rapide**
+   - 3 boutons d'accès direct depuis la page de configuration :
+     - ⚙️ Activer/Configurer les CronTasks
+     - 📧 Configurer les notifications
+     - 📋 Modèles de notifications
+
+### 🎨 Améliorations
+
+1. **Configuration simplifiée**
+   - Seulement 2 paramètres métier essentiels (seuil, max_alerts)
+   - Configuration claire sans duplication avec GLPI
+   - Liens de configuration rapide intégrés
+
+2. **CronTasks activés par défaut**
+   - Les 3 CronTasks sont activés automatiquement à l'installation
+   - Plus besoin d'activation manuelle
+   - Gain de temps lors de la première configuration
+
+3. **Nettoyage complet à la désinstallation**
+   - Supprime toutes les traces dans `glpi_configs`
+   - Supprime les notifications et templates associés
+   - Aucun résidu dans la base de données
+
+### 🐛 Corrections de bugs
+
+1. **Double symbole % corrigé**
+   - Les notifications affichaient `20%%` au lieu de `20%`
+   - Maintenant corrigé dans le code
+
+2. **Nombre d'imprimantes corrigé**
+   - Affichage correct du nombre d'imprimantes concernées dans les logs
+
+3. **Liaison template/notification**
+   - Association automatique entre templates et notifications
+   - Notifications fonctionnelles dès l'installation
+
+### 📖 Documentation
+
+- **CHANGELOG.md** : Historique complet des versions
+- **README.md** : Configuration de base mise à jour avec nouveau workflow
+- **INSTALL.md** : Ce guide, entièrement revu pour la v1.1.0
+- **version.json** : Métadonnées enrichies avec changelog structuré
 
 ---
 
@@ -176,7 +243,11 @@ SELECT name, state FROM glpi_crontasks WHERE itemtype = 'PluginSnmptonealertsTon
 
 ## ⚙️ Configuration
 
-### Configuration de base
+### Configuration de base (v1.1.0 - Simplifiée)
+
+Le plugin a été **grandement simplifié** dans la version 1.1.0. La configuration se fait maintenant en **2 paramètres** + accès rapide aux Actions automatiques.
+
+#### Étape 1 : Configuration des paramètres
 
 1. Aller dans **Configuration → SNMP Toner Alerts**
 
@@ -185,28 +256,42 @@ SELECT name, state FROM glpi_crontasks WHERE itemtype = 'PluginSnmptonealertsTon
    - Plage recommandée : `15%` à `25%`
    - ⚠️ Trop bas = trop d'alertes / Trop haut = risque de panne
 
-3. **Destinataires emails** :
-   ```
-   admin@example.com, technique@example.com, dsi@example.com
-   ```
-   - Séparés par des virgules
-   - Valider la syntaxe des emails
-
-4. **Fréquence de vérification** :
-   - Valeur par défaut : `6 heures` (4 vérifications/jour)
-   - Recommandé : entre `4h` et `12h`
-   - Impact : fréquence de CheckTonerLevels CronTask
-
-5. **Nombre maximum d'alertes quotidiennes** :
+3. **Nombre maximum d'alertes quotidiennes** :
    - Valeur par défaut : `3`
    - Après dépassement → passage en récapitulatif hebdomadaire
    - Recommandé : `3` à `5`
 
-6. **Horaires d'envoi** :
-   - Alertes journalières : `08:00` (configurable via crontab système)
-   - Récapitulatif hebdomadaire : `Vendredi 12:00`
+4. Cliquer sur **Enregistrer**
 
-7. Cliquer sur **Enregistrer**
+#### Étape 2 : Utiliser les liens de configuration rapide
+
+La page de configuration affiche maintenant **3 boutons d'accès rapide** :
+
+1. **⚙️ Activer/Configurer les CronTasks**
+   - Ouvre directement la liste des Actions automatiques du plugin
+   - Les 3 CronTasks (CheckTonerLevels, SendDailyAlerts, SendWeeklyRecap) sont **activés par défaut**
+   - Vous pouvez ajuster les fréquences et horaires si besoin
+
+2. **📧 Configurer les notifications**
+   - Ouvre la liste des notifications actives
+   - Permet d'ajouter/modifier les destinataires des emails
+
+3. **📋 Modèles de notifications**
+   - Ouvre les templates d'emails
+   - Permet de personnaliser le contenu des alertes
+
+#### Philosophie de configuration
+
+Le plugin se concentre sur les **paramètres métier spécifiques** au monitoring des toners :
+- ✅ **Seuil d'alerte (%)** : Seuil métier pour déclencher les alertes
+- ✅ **Nombre max d'alertes quotidiennes** : Logique de basculement journalier/hebdomadaire
+
+Les autres paramètres (destinataires, horaires, activation) sont gérés par les **fonctionnalités natives de GLPI** :
+- 📧 Destinataires → **Configuration → Notifications → Notifications**
+- ⏰ Horaires → **Configuration → Actions automatiques** (CronTasks)
+- ✅ Activation → CronTasks activés par défaut
+
+**💡 Avantage** : Configuration claire, sans duplication avec GLPI
 
 ### Vérification de la configuration
 
@@ -245,11 +330,19 @@ FROM glpi_plugin_snmptoneralerts_excludedprinters e
 JOIN glpi_printers p ON p.id = e.printers_id;
 ```
 
-### Gestion des cartouches et références
+### Gestion des cartouches et références (v1.1.0 - Amélioré)
 
-Le plugin affiche automatiquement les **références de cartouches** si elles sont liées aux modèles d'imprimantes dans GLPI.
+Le plugin affiche automatiquement les **noms et références de cartouches** dans les notifications en les associant aux propriétés SNMP.
 
-**Configuration des références** :
+**📋 Format d'affichage dans les notifications** :
+
+```
+- Toner noir: 19% (HP 305A Black (Ref: CE410A)) [Alerte 2/3]
+- Toner cyan: 10% (HP 305 Tri-color (Ref: CE411A)) [Alerte 1/3]
+- Toner magenta: 8% (Non défini) [Alerte 3/3]
+```
+
+#### Configuration des références
 
 1. Aller dans **Gestion → Modèles d'imprimantes**
 2. Sélectionner le modèle (ex: "HP LaserJet Pro 400")
@@ -257,36 +350,52 @@ Le plugin affiche automatiquement les **références de cartouches** si elles so
 
 4. Éditer chaque cartouche dans **Gestion → Cartouches** :
    - Champ **Référence** : `CF400X`
+   - Champ **Nom** : `HP 305A Black`
    - Champ **Commentaire** : Ajouter la couleur pour le mapping :
      * `black` ou `noir` → Toner noir
      * `cyan` → Toner cyan
      * `magenta` → Toner magenta
      * `yellow` ou `jaune` → Toner jaune
+     * `tri-color` ou `tricolor` ou `couleur` → Cartouche multicolore (fallback)
      * `drum black` → Bloc image noir
 
-**Mapping SNMP → Cartouches** :
+#### Mapping SNMP → Cartouches (avec fallback tri-color)
 
 Le plugin utilise la correspondance suivante :
 
-| Propriété SNMP (`glpi_printers_cartridgeinfos.property`) | Mots-clés recherchés dans `comment` |
-|----------------------------------------------------------|-------------------------------------|
-| `tonerblack` | black, noir, bk |
-| `tonercyan` | cyan, c |
-| `tonermagenta` | magenta, m |
-| `toneryellow` | yellow, jaune, y |
+| Propriété SNMP | Mots-clés recherchés (priorité) | Fallback |
+|----------------|----------------------------------|----------|
+| `tonerblack` | black, noir, bk | - |
+| `tonercyan` | cyan, c | tri-color, tricolor, couleur |
+| `tonermagenta` | magenta, m | tri-color, tricolor, couleur |
+| `toneryellow` | yellow, jaune, y | tri-color, tricolor, couleur |
+| `drumblack` | drum black, drum noir | - |
+| `drumcyan` | drum cyan | drum tri-color |
+| `drummagenta` | drum magenta | drum tri-color |
+| `drumyellow` | drum yellow, drum jaune | drum tri-color |
 
-**Vérifier les associations** :
+**💡 Astuce** : Si votre imprimante utilise une cartouche **tri-color** (3 couleurs en 1), ajoutez `tri-color` dans le commentaire. Le plugin l'utilisera automatiquement pour les toners cyan, magenta et yellow.
+
+#### Vérifier les associations
 
 ```sql
 -- Voir les cartouches compatibles avec références
 SELECT 
     pm.name AS modele,
+    ci.name AS cartouche,
     ci.ref AS reference,
-    ci.comment AS couleur
+    ci.comment AS mapping
 FROM glpi_printermodels pm
 JOIN glpi_cartridgeitems_printermodels cpm ON cpm.printermodels_id = pm.id
 JOIN glpi_cartridgeitems ci ON ci.id = cpm.cartridgeitems_id
-WHERE ci.comment IS NOT NULL AND ci.comment != '';
+WHERE ci.comment IS NOT NULL AND ci.comment != ''
+ORDER BY pm.name, ci.name;
+
+-- Voir les propriétés SNMP remontées pour une imprimante
+SELECT p.name, c.property, c.value
+FROM glpi_printers p
+JOIN glpi_printers_cartridgeinfos c ON c.printers_id = p.id
+WHERE p.id = 42;  -- Remplacer par l'ID de votre imprimante
 ```
 
 ---
@@ -295,42 +404,52 @@ WHERE ci.comment IS NOT NULL AND ci.comment != '';
 
 ### Vue d'ensemble des CronTasks
 
-Le plugin utilise **3 tâches automatiques** :
+Le plugin utilise **3 tâches automatiques** qui sont **activées par défaut** lors de l'installation :
 
-| CronTask | Rôle | Fréquence | Horaire recommandé |
-|----------|------|-----------|-------------------|
-| **CheckTonerLevels** | Vérifie les niveaux SNMP et met à jour les états/compteurs | Toutes les 6h | 00:00, 06:00, 12:00, 18:00 |
-| **SendDailyAlerts** | Envoie alertes pour toners avec compteur ≤ 3 | Quotidien | 08:00 |
-| **SendWeeklyRecap** | Envoie récap pour toners avec compteur > 3 | Hebdomadaire | Vendredi 12:00 |
+| CronTask | Rôle | État initial | Fréquence par défaut | Horaire recommandé |
+|----------|------|--------------|---------------------|-------------------|
+| **CheckTonerLevels** | Vérifie les niveaux SNMP et met à jour les états/compteurs | ✅ Actif | Toutes les 6h (21600s) | 00:00, 06:00, 12:00, 18:00 |
+| **SendDailyAlerts** | Envoie alertes pour toners avec compteur ≤ 3 | ✅ Actif | Quotidien (86400s) | 08:00 |
+| **SendWeeklyRecap** | Envoie récap pour toners avec compteur > 3 | ✅ Actif | Hebdomadaire (604800s) | Vendredi 12:00 |
 
-### Configuration dans GLPI
+> **💡 Nouveauté v1.1.0** : Les CronTasks sont maintenant activés automatiquement à l'installation. Vous n'avez plus besoin de les activer manuellement, seulement de les configurer si vous souhaitez modifier les horaires.
 
-1. Aller dans **Configuration → Actions automatiques**
+### Configuration dans GLPI (optionnelle)
+
+Les CronTasks fonctionnent immédiatement avec les paramètres par défaut. Si vous souhaitez **personnaliser les horaires** :
+
+1. Aller dans **Configuration → Actions automatiques** (ou utiliser le bouton "⚙️ Activer/Configurer les CronTasks" depuis la page de configuration du plugin)
 
 2. Rechercher "Toner" ou filtrer par plugin "SNMP Toner Alerts"
 
-3. Pour chaque tâche, configurer :
+3. Pour chaque tâche, vous pouvez modifier :
 
 #### CheckTonerLevels
 
-- **État** : Actif ✅
+- **État** : ✅ Actif (par défaut)
 - **Mode d'exécution** : CLI (recommandé) ou GLPI
-- **Fréquence** : `21600` secondes (6h)
+- **Fréquence** : `21600` secondes (6h) - Ajustable selon vos besoins
 - **État de l'exécution** : À planifier
+
+💡 **Recommandation** : Conserver 6h pour un bon équilibre entre réactivité et charge serveur.
 
 #### SendDailyAlerts
 
-- **État** : Actif ✅
-- **Mode d'exécution** : CLI (via cron système)
+- **État** : ✅ Actif (par défaut)
+- **Mode d'exécution** : CLI (via cron système recommandé)
 - **Fréquence** : `86400` secondes (24h)
 - **État de l'exécution** : À planifier
 
+💡 **Recommandation** : Configurer un horaire précis via crontab (ex: 08:00) pour garantir l'envoi à heure fixe.
+
 #### SendWeeklyRecap
 
-- **État** : Actif ✅
-- **Mode d'exécution** : CLI (via cron système)
+- **État** : ✅ Actif (par défaut)
+- **Mode d'exécution** : CLI (via cron système recommandé)
 - **Fréquence** : `604800` secondes (7 jours)
 - **État de l'exécution** : À planifier
+
+💡 **Recommandation** : Configurer via crontab pour envoi le vendredi à 12:00.
 
 ### Configuration Cron système (recommandé)
 
@@ -471,7 +590,7 @@ Le plugin injecte les balises suivantes dans les templates :
 | `##toner.alert_type##` | Scalaire | Type d'alerte | `Journalière` / `Hebdomadaire` |
 | `##PRINTERS##` | Bloc | Liste détaillée des imprimantes et toners | Voir structure ci-dessous |
 
-### Structure de la balise ##PRINTERS##
+### Structure de la balise ##PRINTERS## (v1.1.0 - Format amélioré)
 
 Cette balise contient un **bloc de texte formaté** avec toutes les imprimantes en alerte :
 
@@ -481,8 +600,9 @@ Localisation: Bâtiment A > RDC > Accueil
 Modèle: HP LaserJet Pro 400 color M451dn
 
 Toners concernés:
-  - Toner cyan (Réf: CF401X): 15% (Alerte 2/3)
-  - Toner magenta (Réf: CF403X): 18% (Alerte 1/3)
+  - Toner noir: 19% (HP 305A Black (Ref: CE410A)) [Alerte 2/3]
+  - Toner cyan: 15% (HP 305 Tri-color (Ref: CE411A)) [Alerte 2/3]
+  - Toner magenta: 18% (Non défini) [Alerte 1/3]
 
 ─────────────────────────────────────
 
@@ -491,18 +611,24 @@ Localisation: Bâtiment B > Étage 1 > Bureau
 Modèle: Xerox WorkCentre 5335
 
 Toners concernés:
-  - Toner noir (Réf: 006R01606): 8% (Alerte 5/3 - Récap hebdomadaire)
+  - Toner noir: 8% (Xerox 006R01606 Black (Ref: 006R01606)) [Alerte 5/3 - Récap hebdomadaire]
 
 ─────────────────────────────────────
 ```
 
-**Détails de la structure** :
+**Détails de la structure (nouveauté v1.1.0)** :
 
 - **Nom imprimante** : `glpi_printers.name`
 - **Localisation** : Chemin complet (Entité > Lieu > Sous-lieu)
 - **Modèle** : `glpi_printermodels.name`
-- **Toners** : Liste avec couleur, référence (si disponible), niveau %, compteur d'alertes
+- **Toners** : Format amélioré → `Couleur: Niveau% (Nom cartouche (Ref: Référence)) [Compteur]`
+  - **Nom de la cartouche** : `glpi_cartridgeitems.name` (ex: "HP 305A Black")
+  - **Référence** : `glpi_cartridgeitems.ref` (ex: "CE410A")
+  - **Fallback** : Si non défini → affiche "Non défini"
+  - **Tri-color** : Support des cartouches multicolores (cyan/magenta/yellow partagent la même ref)
 - **Séparateurs** : Lignes de tirets pour lisibilité
+
+> **💡 Nouveauté v1.1.0** : Les notifications affichent maintenant **à la fois le nom et la référence** des cartouches pour faciliter la commande. Si une cartouche n'est pas associée au modèle dans GLPI, "Non défini" sera affiché.
 
 ### Exemple de template simple (texte)
 
