@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2025-11-01
+
+### 🎨 Améliorations
+
+#### Optimisation des templates d'emails pour Outlook 2016
+- **Émojis simples maintenus** : 🖨️ (imprimante), 🚨 (alerte), 📍 (localisation) affichés correctement
+- **Émojis colorés supprimés** : Carrés colorés des toners remplacés par des bordures pour meilleure compatibilité
+- **Hauteurs d'encarts réduites** : 
+  - Header (titre) : `padding: 30px` → `20px`, taille `26px` → `24px`
+  - Summary (alertes) : `padding: 30px` → `15px` (vertical), design moins lourd
+- **Design épuré** : Suppression gradients CSS, border-radius, backgrounds sur badges (compatibilité Outlook 2016)
+- **Liens fonctionnels** : Conservation des liens cliquables vers imprimantes et cartouches GLPI
+
+#### Traductions françaises complètes
+- **Noms des templates** traduits : "SNMP Toner Alert - Daily" → "Alerte Toner SNMP - Quotidienne"
+- **Commentaires traduits** : "Template for daily toner alerts" → "Modèle pour les alertes quotidiennes de toners"
+- **Support multilingue** : Fallback automatique vers anglais si locale française non disponible
+
+#### Amélioration de l'interface de configuration
+- **Bouton Sauvegarder repositionné** : Placé juste après la configuration, avant les liens rapides (ergonomie améliorée)
+- **Liens de configuration rapide** : Ouverture dans l'onglet actuel au lieu d'un nouvel onglet
+- **Tableau des exclusions nettoyé** : 
+  - Suppression de l'entête de colonne "Actions" (bouton auto-explicatif)
+  - Alignement du bouton "Retirer" corrigé (aligné à gauche comme les autres colonnes)
+
+### 🐛 Corrections
+
+- **Caractère parasite "1"** : Correction du `Html::closeForm()` qui affichait "1" à côté du bouton Retirer
+- **Traductions inutilisées** : Suppression de la traduction "Actions" des fichiers locales (.po et .pot)
+
+### 📖 Documentation
+
+- **MODIFICATIONS_OUTLOOK2016.md** : Guide complet des optimisations pour Outlook 2016
+- **email_preview_outlook2016.html** : Aperçu visuel des templates compatibles Outlook 2016
+
+---
+
 ## [1.1.2] - 2025-11-01
 
 ### 🎯 Améliorations

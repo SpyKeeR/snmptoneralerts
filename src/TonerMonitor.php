@@ -513,11 +513,11 @@ class TonerMonitor extends CommonDBTM
     }
 
     /**
-     * Get cartridge info (name and reference) from printer model and toner property
+     * Get cartridge info (name, reference and ID) from printer model and toner property
      *
      * @param int $printer_model_id
      * @param string $property
-     * @return array ['name' => string, 'ref' => string]
+     * @return array ['name' => string, 'ref' => string, 'id' => int]
      */
     public static function getCartridgeReference($printer_model_id, $property)
     {
@@ -538,12 +538,13 @@ class TonerMonitor extends CommonDBTM
         $search_terms = $color_map[$property] ?? [];
         
         if (empty($search_terms)) {
-            return ['name' => __('Unknown'), 'ref' => ''];
+            return ['name' => __('Unknown'), 'ref' => '', 'id' => 0];
         }
 
         // Search for cartridge items linked to this printer model
         $result = $DB->request([
             'SELECT' => [
+                'ci.id',
                 'ci.ref',
                 'ci.name',
                 'ci.comment'
@@ -571,6 +572,7 @@ class TonerMonitor extends CommonDBTM
                 if (strpos($comment, strtolower($term)) !== false || 
                     strpos($name, strtolower($term)) !== false) {
                     return [
+                        'id' => $row['id'] ?? 0,
                         'name' => $row['name'] ?? '',
                         'ref' => $row['ref'] ?? ''
                     ];
@@ -592,6 +594,7 @@ class TonerMonitor extends CommonDBTM
                     strpos($comment, 'couleur') !== false || 
                     strpos($name, 'couleur') !== false) {
                     return [
+                        'id' => $row['id'] ?? 0,
                         'name' => $row['name'] ?? '',
                         'ref' => $row['ref'] ?? ''
                     ];
@@ -599,6 +602,6 @@ class TonerMonitor extends CommonDBTM
             }
         }
 
-        return ['name' => __('Not defined'), 'ref' => ''];
+        return ['id' => 0, 'name' => __('Not defined'), 'ref' => ''];
     }
 }

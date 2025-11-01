@@ -110,7 +110,7 @@ class Config extends CommonDBTM
         echo "<th>" . __('Reason', 'snmptoneralerts') . '</th>';
         echo "<th>" . __('Excluded by', 'snmptoneralerts') . '</th>';
         echo "<th>" . __('Date', 'snmptoneralerts') . '</th>';
-        echo "<th>" . __('Actions', 'snmptoneralerts') . '</th>';
+        echo "<th></th>";
         echo "</tr>";
 
         // Récupérer les imprimantes exclues
@@ -151,13 +151,13 @@ class Config extends CommonDBTM
                 echo "<td>" . ($row['reason'] ?: '-') . "</td>";
                 echo "<td>" . ($row['user_name'] ?: '-') . "</td>";
                 echo "<td>" . Html::convDateTime($row['date_creation']) . "</td>";
-                echo "<td class='center'>";
+                echo "<td>";
                 echo "<form method='post' action='" . $CFG_GLPI['root_doc'] . "/plugins/snmptoneralerts/front/config.php' style='display:inline;'>";
                 echo "<input type='hidden' name='exclusion_id' value='" . $row['id'] . "'>";
                 echo "<button type='submit' name='delete_exclusion' class='btn btn-sm btn-danger' onclick=\"return confirm('" . __('Are you sure you want to remove this exclusion?', 'snmptoneralerts') . "');\">";
                 echo "<i class='ti ti-trash'></i> " . __('Remove', 'snmptoneralerts');
                 echo "</button>";
-                echo Html::closeForm();
+                echo Html::closeForm(false);
                 echo "</td>";
                 echo "</tr>";
             }
@@ -214,6 +214,12 @@ class Config extends CommonDBTM
         echo " " . __('After this number, switch to weekly recap', 'snmptoneralerts');
         echo '</td></tr>';
 
+        // Bouton Sauvegarder juste après la configuration
+        echo "<tr class='tab_bg_2'>";
+        echo "<td colspan='2' class='center'>";
+        echo "<input type='submit' name='update' class='btn btn-primary' value=\"" . _sx('button', 'Save') . '">';
+        echo '</td></tr>';
+
         // Quick links section avec URLs de recherche
         echo "<tr class='tab_bg_1'>";
         echo "<td colspan='2' class='center'>";
@@ -223,32 +229,27 @@ class Config extends CommonDBTM
         
         // Link to cron tasks with search filter
         $crontask_url = $CFG_GLPI['root_doc'] . "/front/crontask.php?as_map=0&browse=0&unpublished=1&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=8&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=GlpiPlugin%5CSnmptoneralerts%5CTonerMonitor&params%5Bhide_criteria%5D=0";
-        echo "<a href='" . $crontask_url . "' class='btn btn-primary' target='_blank' style='padding: 10px 20px; font-size: 1em;'>";
+        echo "<a href='" . $crontask_url . "' class='btn btn-primary' style='padding: 10px 20px; font-size: 1em;'>";
         echo "<i class='ti ti-clock me-2'></i>";
         echo __('Scheduling & Frequency', 'snmptoneralerts');
         echo "</a>";
         
         // Link to notifications with search filter
         $notification_url = $CFG_GLPI['root_doc'] . "/front/notification.php?as_map=0&browse=0&unpublished=1&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=5&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=GlpiPlugin%5CSnmptoneralerts%5CTonerAlert&params%5Bhide_criteria%5D=0";
-        echo "<a href='" . $notification_url . "' class='btn btn-primary' target='_blank' style='padding: 10px 20px; font-size: 1em;'>";
+        echo "<a href='" . $notification_url . "' class='btn btn-primary' style='padding: 10px 20px; font-size: 1em;'>";
         echo "<i class='ti ti-bell me-2'></i>";
         echo __('Email Recipients', 'snmptoneralerts');
         echo "</a>";
         
         // Link to notification templates with search filter
         $template_url = $CFG_GLPI['root_doc'] . "/front/notificationtemplate.php?as_map=0&browse=0&unpublished=1&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=4&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=GlpiPlugin%5CSnmptoneralerts%5CTonerAlert&params%5Bhide_criteria%5D=0";
-        echo "<a href='" . $template_url . "' class='btn btn-primary' target='_blank' style='padding: 10px 20px; font-size: 1em;'>";
+        echo "<a href='" . $template_url . "' class='btn btn-primary' style='padding: 10px 20px; font-size: 1em;'>";
         echo "<i class='ti ti-mail me-2'></i>";
         echo __('Email Templates', 'snmptoneralerts');
         echo "</a>";
         
         echo "</div>";
         echo "</div>";
-        echo '</td></tr>';
-
-        echo "<tr class='tab_bg_2'>";
-        echo "<td colspan='2' class='center'>";
-        echo "<input type='submit' name='update' class='btn btn-primary' value=\"" . _sx('button', 'Save') . '">';
         echo '</td></tr>';
 
         echo '</table></div>';

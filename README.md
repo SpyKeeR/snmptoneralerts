@@ -5,7 +5,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![GLPI](https://img.shields.io/badge/GLPI-≥11.0-green.svg)](https://glpi-project.org/)
 [![PHP](https://img.shields.io/badge/PHP-≥8.2-777BB4.svg)](https://www.php.net/)
-[![Version](https://img.shields.io/badge/version-1.1.2-orange.svg)](https://github.com/SpyKeeR/snmptoneralerts/releases)
+[![Version](https://img.shields.io/badge/version-1.1.3-orange.svg)](https://github.com/SpyKeeR/snmptoneralerts/releases)
 
 **Plugin GLPI pour la surveillance automatique des niveaux de toners via SNMP**
 

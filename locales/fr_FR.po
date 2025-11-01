@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: SNMP Toner Alerts 1.1.2\n"
+"Project-Id-Version: SNMP Toner Alerts 1.1.3\n"
 "Report-Msgid-Bugs-To: https://github.com/SpyKeeR/snmptoneralerts/issues\n"
-"POT-Creation-Date: 2025-11-01 17:00+0100\n"
-"PO-Revision-Date: 2025-11-01 17:00+0100\n"
+"POT-Creation-Date: 2025-11-01 19:00+0100\n"
+"PO-Revision-Date: 2025-11-01 19:00+0100\n"
 "Last-Translator: SpyKeeR <https://github.com/SpyKeeR>\n"
 "Language-Team: French\n"
 "Language: fr_FR\n"
@@ -123,6 +123,9 @@ msgstr "Alerte %d/%d"
 msgid "Persistent since %s"
 msgstr "Persistante depuis %s"
 
+msgid "Persistent since"
+msgstr "Persistante depuis"
+
 msgid "Ref"
 msgstr "Réf"
 
@@ -166,9 +169,6 @@ msgstr "Exclu par"
 msgid "Date"
 msgstr "Date"
 
-msgid "Actions"
-msgstr "Actions"
-
 msgid "No excluded printers"
 msgstr "Aucune imprimante exclue"
 
@@ -192,3 +192,16 @@ msgstr "Cette imprimante est déjà exclue"
 
 msgid "Exclusion successfully removed"
 msgstr "Exclusion retirée avec succès"
+
+# Notification templates names and comments
+msgid "SNMP Toner Alert - Daily"
+msgstr "Alerte Toner SNMP - Quotidienne"
+
+msgid "SNMP Toner Alert - Weekly"
+msgstr "Alerte Toner SNMP - Hebdomadaire"
+
+msgid "Template for daily toner alerts"
+msgstr "Modèle pour les alertes quotidiennes de toners"
+
+msgid "Template for weekly toner recap"
+msgstr "Modèle pour le récapitulatif hebdomadaire de toners"

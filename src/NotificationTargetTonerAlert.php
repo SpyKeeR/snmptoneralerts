@@ -130,13 +130,19 @@ class NotificationTargetTonerAlert extends NotificationTarget
         // Build printers list
         $printers_data = $options['printers'] ?? [];
         $this->data['##toner.count##'] = count($printers_data);
+        
+        // Plural marker for subject
+        $this->data['##toner.s##'] = count($printers_data) > 1 ? 's' : '';
 
-        // Foreach printers
-        $printers_list = '';
+        // Build GLPI base URL
+        $glpi_url = rtrim($CFG_GLPI['url_base'], '/');
+
+        // Foreach printers - Text version
+        $printers_list_text = '';
         foreach ($printers_data as $printer_id => $printer_info) {
-            $printers_list .= "=== " . $printer_info['printer_name'] . " ===\n";
-            $printers_list .= __('Location') . ": " . $printer_info['location'] . "\n";
-            $printers_list .= __('Model') . ": " . $printer_info['model'] . "\n\n";
+            $printers_list_text .= "=== " . $printer_info['printer_name'] . " ===\n";
+            $printers_list_text .= __('Location') . ": " . $printer_info['location'] . "\n";
+            $printers_list_text .= __('Model') . ": " . $printer_info['model'] . "\n\n";
 
             foreach ($printer_info['toners'] as $toner) {
                 $property_label = self::getPropertyLabel($toner['property']);
@@ -155,14 +161,114 @@ class NotificationTargetTonerAlert extends NotificationTarget
                     $cartridge_desc .= ' (' . __('Ref', 'snmptoneralerts') . ': ' . $cartridge_info['ref'] . ')';
                 }
 
-                $printers_list .= "  - " . $property_label . ": " . $toner['value'] . "% ";
-                $printers_list .= "(" . $cartridge_desc . ") ";
-                $printers_list .= "[" . $alert_info . "]\n";
+                $printers_list_text .= "  - " . $property_label . ": " . $toner['value'] . "% ";
+                $printers_list_text .= "(" . $cartridge_desc . ") ";
+                $printers_list_text .= "[" . $alert_info . "]\n";
             }
-            $printers_list .= "\n";
+            $printers_list_text .= "\n";
         }
 
-        $this->data['##PRINTERS##'] = $printers_list;
+        // Foreach printers - HTML version with styling
+        $printers_list_html = '';
+        $is_daily = ($event == 'toner_alert_daily');
+        
+        foreach ($printers_data as $printer_id => $printer_info) {
+            $printer_url = $glpi_url . '/front/printer.form.php?id=' . $printer_id;
+            
+            // Start printer card (no border-radius for Outlook 2016)
+            $printers_list_html .= '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px; border: 2px solid #d1d5db;">';
+            
+            // Printer header
+            $printers_list_html .= '<tr>';
+            $printers_list_html .= '<td style="background-color: #f3f4f6; padding: 15px; border-bottom: 2px solid #9ca3af;">';
+            $printers_list_html .= '<h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 17px; font-weight: bold;">';
+            $printers_list_html .= '🖨️ <a href="' . $printer_url . '" style="color: #4f46e5; text-decoration: underline;">' . htmlspecialchars($printer_info['printer_name']) . '</a>';
+            $printers_list_html .= '</h3>';
+            $printers_list_html .= '<p style="margin: 0; color: #4b5563; font-size: 14px; line-height: 1.5;">';
+            $printers_list_html .= '📍 ' . htmlspecialchars($printer_info['location']) . '<br>';
+            $printers_list_html .= '🖨️ ' . htmlspecialchars($printer_info['model']);
+            $printers_list_html .= '</p>';
+            $printers_list_html .= '</td>';
+            $printers_list_html .= '</tr>';
+            
+            // Toners list
+            $printers_list_html .= '<tr>';
+            $printers_list_html .= '<td style="padding: 15px;">';
+            
+            foreach ($printer_info['toners'] as $toner) {
+                $property_label = self::getPropertyLabel($toner['property']);
+                $cartridge_info = TonerMonitor::getCartridgeReference(
+                    $printer_info['printer_model_id'] ?? 0,
+                    $toner['property']
+                );
+                
+                // Alert info with line break for weekly (date on new line)
+                if ($is_daily) {
+                    $alert_info = sprintf(__('Alert %d/%d', 'snmptoneralerts'), $toner['alert_count'] + 1, $config['max_daily_alerts']);
+                } else {
+                    $date = $toner['first_alert'] ?? '';
+                    $alert_info = __('Persistent since', 'snmptoneralerts') . '<br>' . $date;
+                }
+
+                // Color and icon based on toner type
+                $color_info = self::getTonerColor($toner['property']);
+                
+                // Level color (text only, no background for Outlook compatibility)
+                $level = intval($toner['value']);
+                if ($level <= 2) {
+                    $level_color = '#dc2626'; // Red - Critical
+                    $level_weight = 'bold';
+                } elseif ($level <= 5) {
+                    $level_color = '#f59e0b'; // Orange - Warning
+                    $level_weight = 'bold';
+                } else {
+                    $level_color = '#d97706'; // Amber - Watch
+                    $level_weight = 'bold';
+                }
+                
+                // Cartridge link (if ID available)
+                $cartridge_desc = $cartridge_info['name'];
+                if (!empty($cartridge_info['ref'])) {
+                    $cartridge_desc .= ' (Réf. : ' . $cartridge_info['ref'] . ')';
+                }
+                
+                if (!empty($cartridge_info['id'])) {
+                    $cartridge_url = $glpi_url . '/front/cartridgeitem.form.php?id=' . $cartridge_info['id'];
+                    $cartridge_link = '<a href="' . $cartridge_url . '" style="color: #4f46e5; text-decoration: underline;">' . htmlspecialchars($cartridge_desc) . '</a>';
+                } else {
+                    $cartridge_link = '<span style="color: #6b7280;">' . htmlspecialchars($cartridge_desc) . '</span>';
+                }
+                
+                // Toner row (removed border-radius and emoji icons)
+                $printers_list_html .= '<table width="100%" cellpadding="8" cellspacing="0" style="margin-bottom: 10px; background-color: #fafafa; border-left: 4px solid ' . $color_info['hex'] . ';">';
+                $printers_list_html .= '<tr>';
+                $printers_list_html .= '<td style="width: 40%;">';
+                $printers_list_html .= '<strong style="color: #1f2937; font-size: 15px;">' . htmlspecialchars($property_label) . '</strong>';
+                $printers_list_html .= '</td>';
+                $printers_list_html .= '<td style="width: 25%; text-align: center;">';
+                $printers_list_html .= '<span style="color: ' . $level_color . '; font-weight: ' . $level_weight . '; font-size: 18px;">';
+                $printers_list_html .= $level . '%';
+                $printers_list_html .= '</span>';
+                $printers_list_html .= '</td>';
+                $printers_list_html .= '<td style="width: 35%; text-align: right; font-size: 13px; color: #6b7280;">';
+                $printers_list_html .= $alert_info;
+                $printers_list_html .= '</td>';
+                $printers_list_html .= '</tr>';
+                $printers_list_html .= '<tr>';
+                $printers_list_html .= '<td colspan="3" style="padding-top: 4px; font-size: 13px; color: #4b5563;">';
+                $printers_list_html .= 'Cartouche : ' . $cartridge_link;
+                $printers_list_html .= '</td>';
+                $printers_list_html .= '</tr>';
+                $printers_list_html .= '</table>';
+            }
+            
+            $printers_list_html .= '</td>';
+            $printers_list_html .= '</tr>';
+            $printers_list_html .= '</table>';
+        }
+
+        $this->data['##PRINTERS##'] = $printers_list_text;
+        $this->data['##PRINTERS_HTML##'] = $printers_list_html;
     }
 
     /**
@@ -185,5 +291,27 @@ class NotificationTargetTonerAlert extends NotificationTarget
         ];
 
         return $labels[$property] ?? ucfirst($property);
+    }
+
+    /**
+     * Get color information for toner type (Outlook 2016 compatible)
+     *
+     * @param string $property
+     * @return array ['hex' => string]
+     */
+    private static function getTonerColor($property)
+    {
+        $colors = [
+            'tonerblack'    => ['hex' => '#1f2937'],
+            'tonercyan'     => ['hex' => '#0891b2'],
+            'tonermagenta'  => ['hex' => '#db2777'],
+            'toneryellow'   => ['hex' => '#ca8a04'],
+            'drumblack'     => ['hex' => '#374151'],
+            'drumcyan'      => ['hex' => '#0284c7'],
+            'drummagenta'   => ['hex' => '#be185d'],
+            'drumyellow'    => ['hex' => '#a16207'],
+        ];
+
+        return $colors[$property] ?? ['hex' => '#6b7280'];
     }
 }

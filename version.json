@@ -1,5 +1,5 @@
 ﻿{
-  "version": "1.1.2",
+  "version": "1.1.3",
   "release_date": "2025-11-01",
   "glpi_min_version": "11.0.0",
   "glpi_max_version": "11.0.99",
@@ -10,6 +10,26 @@
   "description": "Plugin GLPI pour la surveillance automatique des niveaux de toners via SNMP avec système d'alertes progressives",
   "tags": ["snmp", "toner", "alerts", "monitoring", "printer", "netinventory"],
   "changes": [
+    {
+      "type": "improvement",
+      "description": "Templates d'emails optimisés pour Outlook 2016 : émojis simples maintenus (🖨️📍🚨), hauteurs d'encarts réduites, design épuré"
+    },
+    {
+      "type": "feature",
+      "description": "Traductions françaises complètes des noms et commentaires des templates de notification"
+    },
+    {
+      "type": "improvement",
+      "description": "Interface de configuration améliorée : bouton Sauvegarder repositionné, liens ouverts dans l'onglet actuel, colonne 'Actions' supprimée"
+    },
+    {
+      "type": "fix",
+      "description": "Correction du caractère parasite '1' à côté du bouton Retirer dans la liste des imprimantes exclues"
+    },
+    {
+      "type": "fix",
+      "description": "Correction de l'alignement du bouton Retirer dans le tableau des exclusions"
+    },
     {
       "type": "improvement",
       "description": "Implémentation des créneaux horaires (hourmin/hourmax) pour les CronTasks SendDailyAlerts (6h-8h) et SendWeeklyRecap (12h-14h)"

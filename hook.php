@@ -195,9 +195,9 @@ function plugin_snmptoneralerts_createNotifications()
     
     if (!$template_id_daily) {
         $template_id_daily = $notification_template->add([
-            'name'     => 'SNMP Toner Alert - Daily',
+            'name'     => __('SNMP Toner Alert - Daily', 'snmptoneralerts'),
             'itemtype' => TonerAlert::class,
-            'comment'  => 'Template for daily toner alerts'
+            'comment'  => __('Template for daily toner alerts', 'snmptoneralerts')
         ]);
 
         // Add translation (French)
@@ -205,9 +205,74 @@ function plugin_snmptoneralerts_createNotifications()
         $translation->add([
             'notificationtemplates_id' => $template_id_daily,
             'language'                 => '',
-            'subject'                  => '[GLPI] Alertes toners - Quotidienne',
-            'content_text'             => "Bonjour,\n\n##toner.count## imprimante(s) ont des toners en dessous du seuil d'alerte (##toner.threshold##%).\n\nType d'alerte: ##toner.alert_type##\n\n##PRINTERS##\n\nMerci de vérifier les niveaux et de commander les cartouches nécessaires.\n\n---\nSNMP Toner Alerts pour GLPI\nCe message est envoyé automatiquement.",
-            'content_html'             => "<p>Bonjour,</p><p>##toner.count## imprimante(s) ont des toners en dessous du seuil d'alerte (##toner.threshold##%).</p><p>Type d'alerte: ##toner.alert_type##</p><pre>##PRINTERS##</pre><p>Merci de vérifier les niveaux et de commander les cartouches nécessaires.</p><hr><p style='color: #666; font-size: 12px;'>SNMP Toner Alerts pour GLPI<br>Ce message est envoyé automatiquement.</p>"
+            'subject'                  => 'Alertes toners - Quotidienne (##toner.count## imprimante##toner.s##)',
+            'content_text'             => "Bonjour,\n\n##toner.count## imprimante(s) ont des toners en dessous du seuil d'alerte (##toner.threshold##%).\n\nType d'alerte: ##toner.alert_type##\n\n##PRINTERS##\n\nMerci de vérifier les niveaux et de remplacer les toners nécessaires.\n\n---\nSNMP Toner Alerts pour GLPI\nCe message est envoyé automatiquement.",
+            'content_html'             => '<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f5f5f5;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border: 1px solid #e5e7eb;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color: #667eea; padding: 20px; text-align: center; border-bottom: 4px solid #5a67d8;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: bold;">
+                                🖨️ Alertes Toners - SNMP
+                            </h1>
+                            <p style="margin: 10px 0 0 0; color: #ffffff; font-size: 16px; font-weight: normal;">
+                                Surveillance quotidienne
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Summary -->
+                    <tr>
+                        <td style="padding: 15px 30px; background-color: #fff7e6; border-bottom: 3px solid #f59e0b;">
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <p style="margin: 0; font-size: 22px; font-weight: bold; color: #f59e0b;">
+                                            ##toner.count## imprimante##toner.s## en alerte
+                                        </p>
+                                        <p style="margin: 10px 0 0 0; color: #78716c; font-size: 15px;">
+                                            Seuil d\'alerte : <strong>##toner.threshold##%</strong> • Type : <strong>##toner.alert_type##</strong>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Printers List -->
+                    <tr>
+                        <td style="padding: 30px;">
+                            ##PRINTERS_HTML##
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f9fafb; padding: 20px 30px; border-top: 2px solid #e5e7eb;">
+                            <p style="margin: 0; color: #374151; font-size: 15px; text-align: center; font-weight: bold;">
+                                Action recommandée : Vérifiez les niveaux et remplacez les toners nécessaires.
+                            </p>
+                            <p style="margin: 15px 0 0 0; color: #6b7280; font-size: 13px; text-align: center;">
+                                SNMP Toner Alerts pour GLPI - Message automatique<br>
+                                Ne pas répondre à cet email
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>'
         ]);
     }
 
@@ -219,9 +284,9 @@ function plugin_snmptoneralerts_createNotifications()
     
     if (!$template_id_weekly) {
         $template_id_weekly = $notification_template->add([
-            'name'     => 'SNMP Toner Alert - Weekly',
+            'name'     => __('SNMP Toner Alert - Weekly', 'snmptoneralerts'),
             'itemtype' => TonerAlert::class,
-            'comment'  => 'Template for weekly toner recap'
+            'comment'  => __('Template for weekly toner recap', 'snmptoneralerts')
         ]);
 
         // Add translation (French)
@@ -229,9 +294,74 @@ function plugin_snmptoneralerts_createNotifications()
         $translation->add([
             'notificationtemplates_id' => $template_id_weekly,
             'language'                 => '',
-            'subject'                  => '[GLPI] Récapitulatif toners - Hebdomadaire',
+            'subject'                  => 'Récapitulatif toners - Hebdomadaire (##toner.count## imprimante##toner.s##)',
             'content_text'             => "Bonjour,\n\n##toner.count## imprimante(s) ont des toners en dessous du seuil d'alerte (##toner.threshold##%).\n\nType d'alerte: ##toner.alert_type## (alertes répétées)\n\n##PRINTERS##\n\nCes imprimantes nécessitent une attention urgente.\n\n---\nSNMP Toner Alerts pour GLPI\nCe message est envoyé automatiquement.",
-            'content_html'             => "<p>Bonjour,</p><p>##toner.count## imprimante(s) ont des toners en dessous du seuil d'alerte (##toner.threshold##%).</p><p>Type d'alerte: ##toner.alert_type## (alertes répétées)</p><pre>##PRINTERS##</pre><p><strong>Ces imprimantes nécessitent une attention urgente.</strong></p><hr><p style='color: #666; font-size: 12px;'>SNMP Toner Alerts pour GLPI<br>Ce message est envoyé automatiquement.</p>"
+            'content_html'             => '<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f5f5f5;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border: 1px solid #e5e7eb;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color: #dc2626; padding: 20px; text-align: center; border-bottom: 4px solid #991b1b;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: bold;">
+                                🚨 Récapitulatif Hebdomadaire - SNMP
+                            </h1>
+                            <p style="margin: 10px 0 0 0; color: #ffffff; font-size: 16px; font-weight: normal;">
+                                Alertes persistantes nécessitant une action
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Summary -->
+                    <tr>
+                        <td style="padding: 12px 30px; background-color: #fef2f2; border-bottom: 3px solid #dc2626;">
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <p style="margin: 0; font-size: 22px; font-weight: bold; color: #dc2626;">
+                                            ##toner.count## imprimante##toner.s## en alerte persistante
+                                        </p>
+                                        <p style="margin: 8px 0 0 0; color: #78716c; font-size: 15px;">
+                                            Seuil d\'alerte : <strong>##toner.threshold##%</strong> • Type : <strong>##toner.alert_type##</strong>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Printers List -->
+                    <tr>
+                        <td style="padding: 30px;">
+                            ##PRINTERS_HTML##
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f9fafb; padding: 20px 30px; border-top: 2px solid #e5e7eb;">
+                            <p style="margin: 0; color: #dc2626; font-size: 16px; text-align: center; font-weight: bold;">
+                                Action urgente : Vérifier la remontée SNMP et la connectivité de l\'imprimante, sinon la décommissionner.
+                            </p>
+                            <p style="margin: 15px 0 0 0; color: #6b7280; font-size: 13px; text-align: center;">
+                                SNMP Toner Alerts pour GLPI - Message automatique<br>
+                                Ne pas répondre à cet email
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>'
         ]);
     }
 
@@ -243,7 +373,7 @@ function plugin_snmptoneralerts_createNotifications()
     
     if (!$notif_id_daily) {
         $notif_id_daily = $notification->add([
-            'name'         => 'SNMP Toner Alert - Daily',
+            'name'         => __('SNMP Toner Alert - Daily', 'snmptoneralerts'),
             'entities_id'  => 0,
             'itemtype'     => TonerAlert::class,
             'event'        => 'toner_alert_daily',
@@ -275,7 +405,7 @@ function plugin_snmptoneralerts_createNotifications()
     
     if (!$notif_id_weekly) {
         $notif_id_weekly = $notification->add([
-            'name'         => 'SNMP Toner Alert - Weekly',
+            'name'         => __('SNMP Toner Alert - Weekly', 'snmptoneralerts'),
             'entities_id'  => 0,
             'itemtype'     => TonerAlert::class,
             'event'        => 'toner_alert_weekly',
