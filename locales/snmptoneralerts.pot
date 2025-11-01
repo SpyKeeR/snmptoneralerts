@@ -5,9 +5,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: SNMP Toner Alerts 1.0.3\n"
+"Project-Id-Version: SNMP Toner Alerts 1.1.1\n"
 "Report-Msgid-Bugs-To: https://github.com/SpyKeeR/snmptoneralerts/issues\n"
-"POT-Creation-Date: 2025-10-31 14:00+0100\n"
+"POT-Creation-Date: 2025-11-01 16:00+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,79 +33,22 @@ msgstr ""
 msgid "Alert when toner level is below this percentage"
 msgstr ""
 
-msgid "Email recipients"
-msgstr ""
-
-msgid "Separate multiple emails with commas"
-msgstr ""
-
-msgid "Check frequency (hours)"
-msgstr ""
-
-msgid "How often to check toner levels"
-msgstr ""
-
 msgid "Maximum daily alerts per toner"
 msgstr ""
 
 msgid "After this number, switch to weekly recap"
 msgstr ""
 
-msgid "Enable daily alerts"
+msgid "Quick Configuration Links"
 msgstr ""
 
-msgid "Daily alert time"
+msgid "Email Recipients"
 msgstr ""
 
-msgid "Enable weekly alerts"
+msgid "Scheduling & Frequency"
 msgstr ""
 
-msgid "Weekly alert day"
-msgstr ""
-
-msgid "Weekly alert time"
-msgstr ""
-
-msgid "To configure email recipients, go to:"
-msgstr ""
-
-msgid "Configuration > Notifications > Notifications"
-msgstr ""
-
-msgid "Look for \"SNMP Toner Alert - Daily\" and \"SNMP Toner Alert - Weekly\" to add recipients (users, groups, profiles)"
-msgstr ""
-
-msgid "Alert scheduling:"
-msgstr ""
-
-msgid "Alert times are managed by GLPI Automatic Actions (CronTasks)."
-msgstr ""
-
-msgid "For precise scheduling (e.g., daily at 8:00 AM), configure system cron jobs as documented in INSTALL.md"
-msgstr ""
-
-msgid "Configuration > Automatic actions"
-msgstr ""
-
-msgid "Monday"
-msgstr ""
-
-msgid "Tuesday"
-msgstr ""
-
-msgid "Wednesday"
-msgstr ""
-
-msgid "Thursday"
-msgstr ""
-
-msgid "Friday"
-msgstr ""
-
-msgid "Saturday"
-msgstr ""
-
-msgid "Sunday"
+msgid "Email Templates"
 msgstr ""
 
 # src/TonerMonitor.php
@@ -203,4 +146,48 @@ msgid "Magenta drum"
 msgstr ""
 
 msgid "Yellow drum"
+msgstr ""
+
+# src/Config.php - Exclusions management
+msgid "Excluded Printers Management"
+msgstr ""
+
+msgid "Printer"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "Excluded by"
+msgstr ""
+
+msgid "Date"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid "No excluded printers"
+msgstr ""
+
+msgid "Reason for exclusion"
+msgstr ""
+
+msgid "Add exclusion"
+msgstr ""
+
+msgid "Remove"
+msgstr ""
+
+msgid "Are you sure you want to remove this exclusion?"
+msgstr ""
+
+# front/config.php - Exclusions messages
+msgid "Printer successfully excluded"
+msgstr ""
+
+msgid "This printer is already excluded"
+msgstr ""
+
+msgid "Exclusion successfully removed"
 msgstr ""

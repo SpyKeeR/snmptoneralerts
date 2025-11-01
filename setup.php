@@ -34,7 +34,7 @@ use GlpiPlugin\Snmptoneralerts\TonerMonitor;
 use GlpiPlugin\Snmptoneralerts\TonerAlert;
 use GlpiPlugin\Snmptoneralerts\NotificationTargetTonerAlert;
 
-define('PLUGIN_SNMPTONERALERTS_VERSION', '1.1.0');
+define('PLUGIN_SNMPTONERALERTS_VERSION', '1.1.1');
 
 // Minimal GLPI version, inclusive
 define('PLUGIN_SNMPTONERALERTS_MIN_GLPI', '11.0.0');

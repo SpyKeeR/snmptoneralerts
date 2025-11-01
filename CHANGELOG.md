@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-11-01
+
+### ✨ Nouvelles fonctionnalités
+
+#### Interface de gestion des exclusions
+- **Tableau complet** dans la page de configuration pour gérer les imprimantes exclues
+- **Ajout d'exclusions** : Sélection d'imprimante + raison + enregistrement automatique de l'utilisateur et date
+- **Suppression d'exclusions** : Bouton de suppression avec confirmation pour chaque ligne
+- **Affichage** : Nom imprimante, raison, utilisateur ayant exclu, date d'exclusion
+
+### 🎨 Améliorations
+
+#### Filtrage amélioré
+- **Exclusion automatique des imprimantes supprimées** : Ajout du filtre `is_deleted = 0` dans :
+  - `cronSendDailyAlerts()` : Les imprimantes en corbeille ne génèrent plus d'alertes quotidiennes
+  - `cronSendWeeklyRecap()` : Les imprimantes en corbeille ne génèrent plus de récapitulatifs hebdomadaires
+  - Complète le filtrage déjà présent dans `cronCheckTonerLevels()`
+
+#### Réorganisation de l'interface
+- **Nouvelle structure** de la page de configuration :
+  1. Section **Gestion des exclusions** (en premier)
+  2. Section **Configuration** (threshold + max_alerts)
+  3. Section **Liens de configuration rapide**
+- **Meilleure logique** : Les exclusions sont visibles immédiatement avant la configuration
+
+#### Seuil par défaut optimisé
+- **Seuil d'alerte par défaut** : Réduit de `20%` à `5%`
+- **Détection précoce** : Permet d'anticiper les commandes de cartouches
+- **Documentation mise à jour** : README.md et INSTALL.md reflètent le nouveau seuil
+
+#### Liens de configuration rapide améliorés
+- **Filtres de recherche automatiques** intégrés dans les URLs :
+  - **CronTasks** : Filtre sur `itemtype = GlpiPlugin\Snmptoneralerts\TonerMonitor`
+  - **Notifications** : Filtre sur `itemtype = GlpiPlugin\Snmptoneralerts\TonerAlert`
+  - **Templates** : Filtre sur `itemtype = GlpiPlugin\Snmptoneralerts\TonerAlert`
+- **Accès direct** : Un clic ouvre la page GLPI avec uniquement les éléments du plugin
+- **Suppression des textes d'aide** : Interface plus épurée
+- **Boutons plus grands** : `padding: 10px 20px; font-size: 1em;` (au lieu de btn-sm)
+- **Espacement optimisé** : `gap: 15px` entre les boutons
+
+### 📖 Documentation
+
+#### Traductions
+- Ajout de 12 nouvelles chaînes de traduction pour la gestion des exclusions
+- Mise à jour des fichiers `.pot`, `.po` et `.mo` (v1.1.1)
+
 ## [1.1.0] - 2025-11-01
 
 ### ⚠️ BREAKING CHANGES

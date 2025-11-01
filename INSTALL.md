@@ -252,8 +252,8 @@ Le plugin a été **grandement simplifié** dans la version 1.1.0. La configurat
 1. Aller dans **Configuration → SNMP Toner Alerts**
 
 2. **Seuil d'alerte (%)** :
-   - Valeur par défaut : `20%`
-   - Plage recommandée : `15%` à `25%`
+   - Valeur par défaut : `5%`
+   - Plage recommandée : `5%` à `15%`
    - ⚠️ Trop bas = trop d'alertes / Trop haut = risque de panne
 
 3. **Nombre maximum d'alertes quotidiennes** :
@@ -585,7 +585,7 @@ Le plugin injecte les balises suivantes dans les templates :
 
 | Balise | Type | Description | Exemple |
 |--------|------|-------------|---------|
-| `##toner.threshold##` | Scalaire | Seuil d'alerte configuré (%) | `20` |
+| `##toner.threshold##` | Scalaire | Seuil d'alerte configuré (%) | `5` |
 | `##toner.count##` | Scalaire | Nombre d'imprimantes en alerte | `5` |
 | `##toner.alert_type##` | Scalaire | Type d'alerte | `Journalière` / `Hebdomadaire` |
 | `##PRINTERS##` | Bloc | Liste détaillée des imprimantes et toners | Voir structure ci-dessous |

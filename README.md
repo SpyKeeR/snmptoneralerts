@@ -5,7 +5,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![GLPI](https://img.shields.io/badge/GLPI-≥11.0-green.svg)](https://glpi-project.org/)
 [![PHP](https://img.shields.io/badge/PHP-≥8.2-777BB4.svg)](https://www.php.net/)
-[![Version](https://img.shields.io/badge/version-1.1.0-orange.svg)](https://github.com/SpyKeeR/snmptoneralerts/releases)
+[![Version](https://img.shields.io/badge/version-1.1.1-orange.svg)](https://github.com/SpyKeeR/snmptoneralerts/releases)
 
 **Plugin GLPI pour la surveillance automatique des niveaux de toners via SNMP**
 
@@ -45,7 +45,7 @@
 ### 🔔 Système d'alertes progressives
 
 ```
-📊 Niveau < Seuil (20%)
+📊 Niveau < Seuil (5%)
     ↓
 📧 3 alertes quotidiennes (08h00)
     ↓
@@ -63,7 +63,7 @@
 
 | Paramètre | Défaut | Personnalisable |
 |-----------|--------|-----------------|
-| Seuil d'alerte | 20% | ✅ |
+| Seuil d'alerte | 5% | ✅ |
 | Destinataires emails | - | ✅ |
 | Fréquence vérification | 6h | ✅ |
 | Horaires alertes | 08h00 / Ven 12h00 | ✅ |
@@ -141,21 +141,33 @@ SELECT COUNT(*) FROM glpi_printers_cartridgeinfos;
 
 ## ⚙️ Configuration de base
 
-### 1. Paramètres du plugin
+### 1. Gestion des exclusions (v1.1.1)
+
+**Configuration** → **Configuration** → **Onglet "Alertes toners SNMP"** → Section **Gestion des imprimantes exclues**
+
+Permet d'exclure des imprimantes du monitoring (données SNMP incorrectes, imprimante hors service, etc.) :
+
+- **Tableau** : Liste des imprimantes déjà exclues avec nom, raison, utilisateur, date
+- **Ajout** : Sélectionner imprimante + raison → Bouton "Ajouter une exclusion"
+- **Suppression** : Bouton "Retirer" sur chaque ligne (avec confirmation)
+
+> 💡 Les imprimantes **en corbeille** (`is_deleted=1`) sont automatiquement ignorées
+
+### 2. Paramètres du plugin
 
 **Configuration** → **Configuration** → **Onglet "Alertes toners SNMP"**
 
-| Paramètre | Valeur recommandée | Description |
-|-----------|-------------------|-------------|
-| **Seuil d'alerte (%)** | 15-25% | Niveau sous lequel déclencher les alertes |
+| Paramètre | Valeur par défaut | Recommandations |
+|-----------|-------------------|-----------------|
+| **Seuil d'alerte (%)** | 5% | Configurer selon délais d'approvisionnement |
 | **Max alertes quotidiennes** | 3 | Nombre d'alertes avant basculement hebdomadaire |
 
-**Liens de configuration rapide** (dans le formulaire) :
-- 🔔 **Destinataires Email** → Configure les destinataires des notifications
-- ⏰ **Planification & Fréquence** → Configure les horaires et fréquences
-- ✉️ **Modèles d'Email** → Personnalise les templates de notifications
+**Liens de configuration rapide** (dans le formulaire, avec filtres automatiques) :
+- ⏰ **Planification & Fréquence** → Ouvre directement les CronTasks du plugin
+- 🔔 **Destinataires Email** → Ouvre directement les notifications du plugin
+- ✉️ **Modèles d'Email** → Ouvre directement les templates du plugin
 
-### 2. Destinataires des notifications
+### 3. Destinataires des notifications
 
 **Configuration** → **Notifications** → **Notifications**
 
@@ -238,7 +250,7 @@ Le plugin affiche automatiquement les **noms et références** des cartouches da
 ```
 Bonjour,
 
-5 imprimante(s) ont des toners en dessous de 20%.
+5 imprimante(s) ont des toners en dessous de 5%.
 
 Type d'alerte : Quotidienne
 

@@ -67,7 +67,7 @@ class Config extends CommonDBTM
     public static function getDefaults()
     {
         return [
-            'threshold_percentage'     => 20,
+            'threshold_percentage'     => 5,
             'max_daily_alerts'         => 3,
         ];
     }
@@ -90,7 +90,7 @@ class Config extends CommonDBTM
      */
     public function showFormConfig()
     {
-        global $CFG_GLPI;
+        global $CFG_GLPI, $DB;
 
         if (!Session::haveRight('config', UPDATE)) {
             return false;
@@ -98,7 +98,98 @@ class Config extends CommonDBTM
 
         $config = self::getConfig();
 
-        echo "<form name='form' action=\"" . Toolbox::getItemTypeFormURL('Config') . "\" method='post'>";
+        // ===== SECTION 1: EXCLUSION DES IMPRIMANTES =====
+        echo "<div class='center' id='excluded_printers'>";
+        echo "<form name='form_exclude' action=\"" . $CFG_GLPI['root_doc'] . "/plugins/snmptoneralerts/front/config.php\" method='post'>";
+        echo "<table class='tab_cadre_fixe'>";
+        
+        echo "<tr><th colspan='5'>" . __('Excluded Printers Management', 'snmptoneralerts') . '</th></tr>';
+        
+        echo "<tr class='tab_bg_1'>";
+        echo "<th>" . __('Printer', 'snmptoneralerts') . '</th>';
+        echo "<th>" . __('Reason', 'snmptoneralerts') . '</th>';
+        echo "<th>" . __('Excluded by', 'snmptoneralerts') . '</th>';
+        echo "<th>" . __('Date', 'snmptoneralerts') . '</th>';
+        echo "<th>" . __('Actions', 'snmptoneralerts') . '</th>';
+        echo "</tr>";
+
+        // Récupérer les imprimantes exclues
+        $excluded = $DB->request([
+            'SELECT' => [
+                'ep.id',
+                'ep.printers_id',
+                'ep.reason',
+                'ep.users_id',
+                'ep.date_creation',
+                'p.name AS printer_name',
+                'u.name AS user_name'
+            ],
+            'FROM' => 'glpi_plugin_snmptoneralerts_excludedprinters AS ep',
+            'INNER JOIN' => [
+                'glpi_printers AS p' => [
+                    'ON' => [
+                        'p' => 'id',
+                        'ep' => 'printers_id'
+                    ]
+                ]
+            ],
+            'LEFT JOIN' => [
+                'glpi_users AS u' => [
+                    'ON' => [
+                        'u' => 'id',
+                        'ep' => 'users_id'
+                    ]
+                ]
+            ],
+            'ORDER' => 'ep.date_creation DESC'
+        ]);
+
+        if (count($excluded) > 0) {
+            foreach ($excluded as $row) {
+                echo "<tr class='tab_bg_2'>";
+                echo "<td>" . $row['printer_name'] . "</td>";
+                echo "<td>" . ($row['reason'] ?: '-') . "</td>";
+                echo "<td>" . ($row['user_name'] ?: '-') . "</td>";
+                echo "<td>" . Html::convDateTime($row['date_creation']) . "</td>";
+                echo "<td class='center'>";
+                echo "<form method='post' action='" . $CFG_GLPI['root_doc'] . "/plugins/snmptoneralerts/front/config.php' style='display:inline;'>";
+                echo "<input type='hidden' name='exclusion_id' value='" . $row['id'] . "'>";
+                echo "<button type='submit' name='delete_exclusion' class='btn btn-sm btn-danger' onclick=\"return confirm('" . __('Are you sure you want to remove this exclusion?', 'snmptoneralerts') . "');\">";
+                echo "<i class='ti ti-trash'></i> " . __('Remove', 'snmptoneralerts');
+                echo "</button>";
+                echo Html::closeForm();
+                echo "</td>";
+                echo "</tr>";
+            }
+        } else {
+            echo "<tr class='tab_bg_2'>";
+            echo "<td colspan='5' class='center'>" . __('No excluded printers', 'snmptoneralerts') . '</td>';
+            echo "</tr>";
+        }
+
+        // Formulaire d'ajout
+        echo "<tr class='tab_bg_1'>";
+        echo "<td>";
+        Dropdown::show('Printer', [
+            'name' => 'printers_id',
+            'display_emptychoice' => true,
+            'condition' => ['is_deleted' => 0],
+        ]);
+        echo "</td>";
+        echo "<td>";
+        echo "<input type='text' name='reason' placeholder=\"" . __('Reason for exclusion', 'snmptoneralerts') . "\" style='width: 100%;'>";
+        echo "</td>";
+        echo "<td colspan='3' class='center'>";
+        echo "<input type='submit' name='add_exclusion' class='btn btn-sm btn-success' value=\"" . __('Add exclusion', 'snmptoneralerts') . '">';
+        echo "</td>";
+        echo "</tr>";
+
+        echo '</table>';
+        Html::closeForm();
+        echo "</div>";
+
+        // ===== SECTION 2: CONFIGURATION PRINCIPALE =====
+        echo "<form name='form' action=\"" . Toolbox::getItemTypeFormURL('Config') . "\" method='post' style='margin-top: 20px;'>";
         echo "<div class='center' id='tabsbody'>";
         echo "<table class='tab_cadre_fixe'>";
         
@@ -123,37 +214,34 @@ class Config extends CommonDBTM
         echo " " . __('After this number, switch to weekly recap', 'snmptoneralerts');
         echo '</td></tr>';
 
-        // Quick links section
+        // Quick links section avec URLs de recherche
         echo "<tr class='tab_bg_1'>";
         echo "<td colspan='2' class='center'>";
-        echo "<div style='padding: 15px; background: #f8f9fa; border-radius: 5px;'>";
-        echo "<strong><i class='ti ti-link me-2'></i>" . __('Quick Configuration Links', 'snmptoneralerts') . "</strong>";
-        echo "<div style='margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;'>";
+        echo "<div style='padding: 20px; background: #f8f9fa; border-radius: 5px;'>";
+        echo "<strong style='font-size: 1.1em;'><i class='ti ti-link me-2'></i>" . __('Quick Configuration Links', 'snmptoneralerts') . "</strong>";
+        echo "<div style='margin-top: 15px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;'>";
         
-        // Link to notifications
-        echo "<a href='" . $CFG_GLPI['root_doc'] . "/front/notification.php' class='btn btn-sm btn-primary' target='_blank'>";
-        echo "<i class='ti ti-bell me-1'></i>";
-        echo __('Email Recipients', 'snmptoneralerts');
-        echo "</a>";
-        
-        // Link to cron tasks
-        echo "<a href='" . $CFG_GLPI['root_doc'] . "/front/crontask.php' class='btn btn-sm btn-primary' target='_blank'>";
-        echo "<i class='ti ti-clock me-1'></i>";
+        // Link to cron tasks with search filter
+        $crontask_url = $CFG_GLPI['root_doc'] . "/front/crontask.php?as_map=0&browse=0&unpublished=1&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=8&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=GlpiPlugin%5CSnmptoneralerts%5CTonerMonitor&params%5Bhide_criteria%5D=0";
+        echo "<a href='" . $crontask_url . "' class='btn btn-primary' target='_blank' style='padding: 10px 20px; font-size: 1em;'>";
+        echo "<i class='ti ti-clock me-2'></i>";
         echo __('Scheduling & Frequency', 'snmptoneralerts');
         echo "</a>";
         
-        // Link to notification templates
-        echo "<a href='" . $CFG_GLPI['root_doc'] . "/front/notificationtemplate.php' class='btn btn-sm btn-primary' target='_blank'>";
-        echo "<i class='ti ti-mail me-1'></i>";
+        // Link to notifications with search filter
+        $notification_url = $CFG_GLPI['root_doc'] . "/front/notification.php?as_map=0&browse=0&unpublished=1&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=5&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=GlpiPlugin%5CSnmptoneralerts%5CTonerAlert&params%5Bhide_criteria%5D=0";
+        echo "<a href='" . $notification_url . "' class='btn btn-primary' target='_blank' style='padding: 10px 20px; font-size: 1em;'>";
+        echo "<i class='ti ti-bell me-2'></i>";
+        echo __('Email Recipients', 'snmptoneralerts');
+        echo "</a>";
+        
+        // Link to notification templates with search filter
+        $template_url = $CFG_GLPI['root_doc'] . "/front/notificationtemplate.php?as_map=0&browse=0&unpublished=1&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=4&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=GlpiPlugin%5CSnmptoneralerts%5CTonerAlert&params%5Bhide_criteria%5D=0";
+        echo "<a href='" . $template_url . "' class='btn btn-primary' target='_blank' style='padding: 10px 20px; font-size: 1em;'>";
+        echo "<i class='ti ti-mail me-2'></i>";
         echo __('Email Templates', 'snmptoneralerts');
         echo "</a>";
         
-        echo "</div>";
-        echo "<div style='margin-top: 10px;'>";
-        echo "<small class='text-muted'>";
-        echo __('Recipients: Search "SNMP Toner Alert" in Notifications', 'snmptoneralerts') . " | ";
-        echo __('Frequency: Edit "CheckTonerLevels", "SendDailyAlerts", "SendWeeklyRecap" tasks', 'snmptoneralerts');
-        echo "</small>";
         echo "</div>";
         echo "</div>";
         echo '</td></tr>';

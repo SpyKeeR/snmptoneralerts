@@ -1,5 +1,5 @@
 ﻿{
-  "version": "1.1.0",
+  "version": "1.1.1",
   "release_date": "2025-11-01",
   "glpi_min_version": "11.0.0",
   "glpi_max_version": "11.0.99",
@@ -10,6 +10,30 @@
   "description": "Plugin GLPI pour la surveillance automatique des niveaux de toners via SNMP avec système d'alertes progressives",
   "tags": ["snmp", "toner", "alerts", "monitoring", "printer", "netinventory"],
   "changes": [
+    {
+      "type": "feature",
+      "description": "Interface complète de gestion des exclusions d'imprimantes directement dans la page de configuration"
+    },
+    {
+      "type": "improvement",
+      "description": "Filtrage automatique des imprimantes supprimées (is_deleted=1) dans les CronTasks SendDailyAlerts et SendWeeklyRecap"
+    },
+    {
+      "type": "improvement",
+      "description": "Réorganisation de l'interface : section exclusions affichée avant les paramètres de configuration"
+    },
+    {
+      "type": "improvement",
+      "description": "Seuil d'alerte par défaut réduit de 20% à 5% pour une détection plus précoce"
+    },
+    {
+      "type": "improvement",
+      "description": "Liens de configuration rapide avec filtres de recherche automatiques vers CronTasks, Notifications et Templates"
+    },
+    {
+      "type": "improvement",
+      "description": "Amélioration visuelle des boutons de configuration rapide (plus grands, espacement optimisé)"
+    },
     {
       "type": "breaking",
       "description": "Architecture des notifications basée sur TonerAlert (itemtype personnalisé) pour meilleure conformité avec GLPI"

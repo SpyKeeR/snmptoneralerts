@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: SNMP Toner Alerts 1.0.3\n"
+"Project-Id-Version: SNMP Toner Alerts 1.1.1\n"
 "Report-Msgid-Bugs-To: https://github.com/SpyKeeR/snmptoneralerts/issues\n"
-"POT-Creation-Date: 2025-10-31 14:00+0100\n"
-"PO-Revision-Date: 2025-10-31 14:00+0100\n"
+"POT-Creation-Date: 2025-11-01 16:00+0100\n"
+"PO-Revision-Date: 2025-11-01 16:00+0100\n"
 "Last-Translator: SpyKeeR <https://github.com/SpyKeeR>\n"
 "Language-Team: French\n"
 "Language: fr_FR\n"
@@ -35,104 +35,23 @@ msgstr "Pourcentage de seuil (%)"
 msgid "Alert when toner level is below this percentage"
 msgstr "Alerter quand le niveau de toner est en dessous de ce pourcentage"
 
-msgid "Email recipients"
-msgstr "Destinataires email"
-
-msgid "Separate multiple emails with commas"
-msgstr "Séparer plusieurs emails par des virgules"
-
-msgid "Check frequency (hours)"
-msgstr "Fréquence de vérification (heures)"
-
-msgid "How often to check toner levels"
-msgstr "Fréquence de vérification des niveaux de toners"
-
 msgid "Maximum daily alerts per toner"
 msgstr "Nombre maximum d'alertes quotidiennes par toner"
 
 msgid "After this number, switch to weekly recap"
 msgstr "Après ce nombre, basculer sur le récapitulatif hebdomadaire"
 
-msgid "Enable daily alerts"
-msgstr "Activer les alertes quotidiennes"
-
-msgid "Daily alert time"
-msgstr "Heure de l'alerte quotidienne"
-
-msgid "Enable weekly alerts"
-msgstr "Activer les alertes hebdomadaires"
-
-msgid "Controls if daily alert emails are sent. To change frequency or timing, use Automatic Actions link above."
-msgstr "Contrôle si les emails d'alerte quotidiens sont envoyés. Pour changer la fréquence ou l'horaire, utilisez le lien Actions automatiques ci-dessus."
-
-msgid "Controls if weekly recap emails are sent. To change frequency or timing, use Automatic Actions link above."
-msgstr "Contrôle si les emails de récapitulatif hebdomadaire sont envoyés. Pour changer la fréquence ou l'horaire, utilisez le lien Actions automatiques ci-dessus."
-
 msgid "Quick Configuration Links"
 msgstr "Liens de Configuration Rapide"
-
-msgid "Email Recipients"
-msgstr "Destinataires Email"
 
 msgid "Scheduling & Frequency"
 msgstr "Planification & Fréquence"
 
+msgid "Email Recipients"
+msgstr "Destinataires Email"
+
 msgid "Email Templates"
 msgstr "Modèles d'Email"
-
-msgid "Recipients: Search \"SNMP Toner Alert\" in Notifications"
-msgstr "Destinataires : Recherchez \"SNMP Toner Alert\" dans Notifications"
-
-msgid "Frequency: Edit \"CheckTonerLevels\", \"SendDailyAlerts\", \"SendWeeklyRecap\" tasks"
-msgstr "Fréquence : Modifiez les tâches \"CheckTonerLevels\", \"SendDailyAlerts\", \"SendWeeklyRecap\""
-
-msgid "Weekly alert day"
-msgstr "Jour de l'alerte hebdomadaire"
-
-msgid "Weekly alert time"
-msgstr "Heure de l'alerte hebdomadaire"
-
-msgid "To configure email recipients, go to:"
-msgstr "Pour configurer les destinataires email, rendez-vous sur :"
-
-msgid "Configuration > Notifications > Notifications"
-msgstr "Configuration > Notifications > Notifications"
-
-msgid "Look for \"SNMP Toner Alert - Daily\" and \"SNMP Toner Alert - Weekly\" to add recipients (users, groups, profiles)"
-msgstr "Recherchez \"SNMP Toner Alert - Daily\" et \"SNMP Toner Alert - Weekly\" pour ajouter des destinataires (utilisateurs, groupes, profils)"
-
-msgid "Alert scheduling:"
-msgstr "Planification des alertes :"
-
-msgid "Alert times are managed by GLPI Automatic Actions (CronTasks)."
-msgstr "Les horaires d'alertes sont gérés par les Actions automatiques GLPI (CronTasks)."
-
-msgid "For precise scheduling (e.g., daily at 8:00 AM), configure system cron jobs as documented in INSTALL.md"
-msgstr "Pour une planification précise (ex: quotidien à 8h00), configurez des tâches cron système comme documenté dans INSTALL.md"
-
-msgid "Configuration > Automatic actions"
-msgstr "Configuration > Actions automatiques"
-
-msgid "Monday"
-msgstr "Lundi"
-
-msgid "Tuesday"
-msgstr "Mardi"
-
-msgid "Wednesday"
-msgstr "Mercredi"
-
-msgid "Thursday"
-msgstr "Jeudi"
-
-msgid "Friday"
-msgstr "Vendredi"
-
-msgid "Saturday"
-msgstr "Samedi"
-
-msgid "Sunday"
-msgstr "Dimanche"
 
 # src/TonerMonitor.php
 msgid "Check toner levels from SNMP"
@@ -230,3 +149,46 @@ msgstr "Tambour magenta"
 
 msgid "Yellow drum"
 msgstr "Tambour jaune"
+
+# src/Config.php - Exclusions
+msgid "Excluded Printers Management"
+msgstr "Gestion des imprimantes exclues"
+
+msgid "Printer"
+msgstr "Imprimante"
+
+msgid "Reason"
+msgstr "Raison"
+
+msgid "Excluded by"
+msgstr "Exclu par"
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid "No excluded printers"
+msgstr "Aucune imprimante exclue"
+
+msgid "Reason for exclusion"
+msgstr "Raison de l'exclusion"
+
+msgid "Add exclusion"
+msgstr "Ajouter une exclusion"
+
+msgid "Remove"
+msgstr "Retirer"
+
+msgid "Are you sure you want to remove this exclusion?"
+msgstr "Êtes-vous sûr de vouloir retirer cette exclusion ?"
+
+msgid "Printer successfully excluded"
+msgstr "Imprimante exclue avec succès"
+
+msgid "This printer is already excluded"
+msgstr "Cette imprimante est déjà exclue"
+
+msgid "Exclusion successfully removed"
+msgstr "Exclusion retirée avec succès"

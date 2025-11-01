@@ -313,6 +313,7 @@ class TonerMonitor extends CommonDBTM
             ],
             'WHERE' => [
                 's.is_alert' => 1,
+                'p.is_deleted' => 0,
                 new \QueryExpression('s.alert_count < ' . $DB->escape($max_alerts))
             ],
             'ORDER' => ['p.name', 's.property']
@@ -429,6 +430,7 @@ class TonerMonitor extends CommonDBTM
             ],
             'WHERE' => [
                 's.is_alert' => 1,
+                'p.is_deleted' => 0,
                 new \QueryExpression('s.alert_count >= ' . $DB->escape($max_alerts))
             ],
             'ORDER' => ['p.name', 's.property']

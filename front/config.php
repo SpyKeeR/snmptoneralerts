@@ -36,6 +36,48 @@ Session::checkRight('config', UPDATE);
 
 $config = new PluginConfig();
 
+// Ajout d'une imprimante à exclure
+if (isset($_POST['add_exclusion'])) {
+    global $DB;
+    
+    if (isset($_POST['printers_id']) && $_POST['printers_id'] > 0) {
+        // Vérifier que l'imprimante n'est pas déjà exclue
+        $existing = $DB->request([
+            'SELECT' => 'id',
+            'FROM' => 'glpi_plugin_snmptoneralerts_excludedprinters',
+            'WHERE' => ['printers_id' => $_POST['printers_id']]
+        ]);
+        
+        if (count($existing) == 0) {
+            $DB->insert('glpi_plugin_snmptoneralerts_excludedprinters', [
+                'printers_id' => $_POST['printers_id'],
+                'reason' => $_POST['reason'] ?? '',
+                'date_creation' => $_SESSION['glpi_currenttime'],
+                'users_id' => Session::getLoginUserID()
+            ]);
+            
+            Session::addMessageAfterRedirect(__('Printer successfully excluded', 'snmptoneralerts'), false, INFO);
+        } else {
+            Session::addMessageAfterRedirect(__('This printer is already excluded', 'snmptoneralerts'), false, WARNING);
+        }
+    }
+    Html::back();
+}
+
+// Suppression d'une exclusion
+if (isset($_POST['delete_exclusion'])) {
+    global $DB;
+    
+    if (isset($_POST['exclusion_id']) && $_POST['exclusion_id'] > 0) {
+        $DB->delete('glpi_plugin_snmptoneralerts_excludedprinters', [
+            'id' => $_POST['exclusion_id']
+        ]);
+        
+        Session::addMessageAfterRedirect(__('Exclusion successfully removed', 'snmptoneralerts'), false, INFO);
+    }
+    Html::back();
+}
+
 if (isset($_POST['update_config'])) {
     $config->update($_POST);
     Html::back();
